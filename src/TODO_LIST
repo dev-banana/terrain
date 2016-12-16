@@ -1,0 +1,24 @@
+
+probleme texture aux poles
+
+Ombres et lumière ++ 
+
+Textures détaillées (herbe, roche...) 
+
+Animation particule (pluie,neige,brouillard... )
+
+Reflet, animation de l'eau
+
+Améliorer la physique (déplacements, collision et gravité)
+
+Ajouter des objets animés (avions, oiseau...) -> utilisation courbes de Bezier pour les déplacements
+
+Action USER (creuser, construire)
+
+Améliorer l'interaction clavier/actions..
+(supprimer la combinaison shift+)
+
+Ciel qui se déplace ? (rotation de la terre en plus du soleil et de la lune)
+-> couleur sun/ciel procédurale et non avec des textures
+
+Améliorer les jeux de lumières sur les matériaux

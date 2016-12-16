@@ -1,0 +1,499 @@
+#include "map.hpp"
+
+/*==============================
+            INIT
+==============================*/   
+
+void Map::init()
+{
+
+    nbBloc = 0 ;
+    is_digging = false ;
+    use_shadows = SHADOWS ;
+    use_text = TEXTURE ;
+
+
+    /*
+        HEIGHT MAP
+    */
+    heightmap = read_image( PATH_HEIGHTMAP );
+    map_width = heightmap.width() ;
+    map_height = heightmap.height() ;
+    heightmap_text = read_texture( 7, PATH_TEXTURE ) ;
+
+
+    /*
+        OBJET
+    */
+    mesh_cube = read_mesh( CUBE_OBJ );
+    std::vector<vec3> cube_v = mesh_cube.positions() ;
+    std::vector<vec3> cube_n = mesh_cube.normals() ;
+
+
+
+    /*
+        REMPLISSAGE CHUNK
+    */
+    std::cout << "création des maillage ... " << std::endl ;
+
+    posDepart = Point( (int)-map_width/2, 0 , (int)-map_height/2 ) ;
+    chunks.resize( (map_width/CHUNK_SIZE + 1)*(map_height/CHUNK_SIZE + 1)) ;
+
+    float heightValue, x_pos, y_pos ;
+    //on parcourt la heightmap
+    for( int i = 0; i < (int)map_width; i++)
+    {
+        for( int j = 0; j < (int)map_height; j++)
+        {
+            float x = i/CHUNK_SIZE ;
+            float y = j/CHUNK_SIZE ;
+            int index_chunk = y*(map_width/CHUNK_SIZE)+x ;
+
+            heightValue = floor( (float)heightmap(i,j).r * MAX_HEIGHT ) ;
+            x_pos = posDepart.x + i ;
+            y_pos = posDepart.z + j ;
+           
+            unsigned int iv ;
+            vec3 ivv = vec3(x_pos,heightValue, y_pos) ;
+            for( int k = 0 ; k < mesh_cube.vertex_count() ; k++ )
+            {
+                chunks[index_chunk].normal( vec3(cube_n[k].x, cube_n[k].y, cube_n[k].z) ) ;
+                iv = chunks[index_chunk].vertex( vec3(cube_v[k].x+x_pos,cube_v[k].y+heightValue, cube_v[k].z+y_pos) ) ;
+
+                chunks[index_chunk].cubeToVertex[ivv].push_back(iv) ;
+            }
+
+            //on comble les trous entre les hauteurs différentes
+            for( int k = i-1 ; k <= i+1 ; k++ )
+            {
+                for ( int l = j-1 ; l <= j+1; l++ )
+                {
+                    if( k != l && k != -l && k > 0 && l > 0 && k < (int)map_width && l < (int)map_height )
+                    {
+                        int heightVoisin = posDepart.y + floor((float)heightmap(k,l).r * MAX_HEIGHT) ;
+                        int diff = heightValue - heightVoisin ;
+
+                        if( diff > 1 )
+                        {
+                            for( int nc = 1 ; nc < diff ; nc++ )
+                            {
+                                int newHeight = heightValue-nc ;
+                                
+                                for( int k = 0 ; k < mesh_cube.vertex_count() ; k++ )
+                                {
+                                    chunks[index_chunk].normal( vec3(cube_n[k].x, cube_n[k].y, cube_n[k].z) ) ;
+                                    iv = chunks[index_chunk].vertex( vec3(cube_v[k].x+x_pos,cube_v[k].y+newHeight, cube_v[k].z+y_pos) ) ;
+
+                                    ivv = vec3(x_pos,newHeight, y_pos) ;
+                                    chunks[index_chunk].cubeToVertex[vec3(x_pos,newHeight, y_pos)].push_back(iv) ;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    /*
+        SHADER init
+    */
+    program = read_program( PATH_MAP_SHADER ) ;
+    program_print_errors(program) ;
+    program_depth = read_program( PATH_SHADOWS_SHADER ) ;
+    program_print_errors(program_depth) ;
+
+    /*
+        CREATION DES BOUNDING BOX pour les chunks et des VAOS
+    */
+    std::cout << "création des BoundingBox et des VAOs ... " << std::endl ;
+    for ( unsigned int i = 0; i < chunks.size(); i++)
+    {    
+        Point pmin, pmax ;
+        chunks[i].bounds(pmin, pmax);
+        chunks[i].boundingbox.vertex( Point( pmin ) ) ;
+        chunks[i].boundingbox.vertex( Point( pmax ) ) ;
+        chunks[i].boundingbox.vertex( Point( pmax.x, pmin.y, pmin.z ) ) ;
+        chunks[i].boundingbox.vertex( Point( pmax.x, pmax.y, pmin.z ) ) ;
+        chunks[i].boundingbox.vertex( Point( pmin.x, pmax.y, pmin.z ) ) ;
+        chunks[i].boundingbox.vertex( Point( pmin.x, pmax.y, pmax.z ) ) ;
+        chunks[i].boundingbox.vertex( Point( pmin.x, pmin.y, pmax.z ) ) ;
+        chunks[i].boundingbox.vertex( Point( pmax.x, pmin.y, pmax.z ) ) ;
+
+
+        chunks[i].v_count = chunks[i].vertex_count() ;
+
+
+        glGenBuffers(1, &chunks[i].v_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, chunks[i].v_buffer);
+
+        // dimensionne le buffer actif sur array_buffer, l'alloue et l'initialise avec les positions des sommets de l'objet
+        glBufferData(GL_ARRAY_BUFFER,
+            /* length */ chunks[i].vertex_buffer_size(),
+            /* data */ chunks[i].vertex_buffer(),
+            /* usage */ GL_DYNAMIC_DRAW);
+        // GL_STATIC_DRAW decrit l'utilisation du contenu du buffer. dans ce cas, utilisation par draw, sans modifications
+
+        // on recommence avec les normales
+        glGenBuffers(1, &chunks[i].n_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, chunks[i].n_buffer);
+        glBufferData(GL_ARRAY_BUFFER, chunks[i].normal_buffer_size(), chunks[i].normal_buffer(), GL_STATIC_DRAW);
+
+        // creation d'un vertex array object
+        glGenVertexArrays(1, &chunks[i].vao);
+        glBindVertexArray(chunks[i].vao);
+
+        // recuperer l'identifiant de l'attribut : cf in vec3 position; dans le vertex shader
+        GLint attribute= glGetAttribLocation(program, "position");
+        if(attribute < 0)
+            INIT = false ;
+
+        // re-selectionne vertex buffer pour configurer les positions
+        glBindBuffer(GL_ARRAY_BUFFER, chunks[i].v_buffer);
+        // format et organisation des donnees dans le vertex buffer selectionne sur array_buffer,
+        glVertexAttribPointer(attribute, 3, GL_FLOAT, GL_FALSE, /* stride */ 0, /* offset */ 0);
+        glEnableVertexAttribArray(attribute);
+
+        // on recommence pour les normales
+        attribute= glGetAttribLocation(program, "normal");
+        if(attribute < 0)
+            INIT = false ;
+
+        // re-selectionne normal_buffer pour configurer les normales
+        glBindBuffer(GL_ARRAY_BUFFER, chunks[i].n_buffer);
+        glVertexAttribPointer(attribute, 3, GL_FLOAT, GL_FALSE, /* stride */ 0, /* offset */ 0);  // in vec3 normal;
+        glEnableVertexAttribArray(attribute);
+    }
+    // nettoyage
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+    /*
+        SHADOW MAP
+    */
+    framebuffer_width = FRAMEBUFFER_WIDTH ;
+    framebuffer_height = FRAMEBUFFER_HEIGHT ;
+    
+    // etape 1 : creer une texture couleur...
+    glGenTextures(1, &color_buffer);
+    glBindTexture(GL_TEXTURE_2D, color_buffer);      
+    glTexImage2D(GL_TEXTURE_2D, 0,
+        GL_RGBA, framebuffer_width, framebuffer_height, 0,
+        GL_RGBA, GL_FLOAT, nullptr); 
+
+    // creer aussi une texture depth, sinon pas de zbuffer...
+    glGenTextures(1, &depth_buffer);
+    glBindTexture(GL_TEXTURE_2D, depth_buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0,
+        GL_DEPTH_COMPONENT, framebuffer_width, framebuffer_height, 0,
+        GL_DEPTH_COMPONENT, GL_FLOAT, nullptr); 
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // etape 2 : creer et configurer un framebuffer object
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture(GL_DRAW_FRAMEBUFFER,  /* attachment */ GL_COLOR_ATTACHMENT0,
+     /* texture */ color_buffer, /* mipmap level */ 0);
+    glFramebufferTexture(GL_DRAW_FRAMEBUFFER,  /* attachment */ GL_DEPTH_ATTACHMENT,
+     /* texture */ depth_buffer, /* mipmap level */ 0);
+    
+    // le fragment shader ne declare qu'une seule sortie, indice 0
+    GLenum buffers[]= { GL_COLOR_ATTACHMENT0 };
+    glDrawBuffers(1, buffers);
+    
+    // nettoyage
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);  
+}
+
+
+
+/*==============================
+            QUIT
+==============================*/
+
+Chunk::~Chunk()
+{
+    glDeleteBuffers(1, &v_buffer) ;
+    glDeleteBuffers(1, &n_buffer) ;
+    glDeleteVertexArrays(1, &vao) ;
+}
+
+void Map::release()
+{
+    mesh_cube.release();
+    release_program(program) ;
+    release_program(program_depth) ;
+}
+
+
+/*==============================
+        INPUTS
+==============================*/
+
+void Map::update_chunks( Camera_FPS& camera )
+{
+    Transform model = Identity() ;
+    Transform view = camera.view() ;
+    Transform projection = camera.projection(window_width(), window_height()) ;
+    Transform mvp = projection * view * model ;
+
+    chunks_visibles.clear() ;
+    for( unsigned int i = 0 ; i < chunks.size() ; i++)
+    {
+        if( chunks[i].is_visible( mvp ) )
+            chunks_visibles.push_back( &chunks[i] ) ;
+    }
+}
+
+
+
+/*==============================
+            CALCULS
+==============================*/
+
+bool Chunk::is_visible( const Transform& mvp )
+{
+    std::vector<vec3> pos = boundingbox.positions() ;
+
+    std::vector<int> compteur(6,0) ;
+
+    for( int i = 0 ; i < 8 ; i++ )
+    {
+        vec4 v = mvp( vec4( Point(pos[i]) ) ) ;
+
+        if( v.x < -v.w) compteur[0]++ ;
+        if( v.x > v.w) compteur[1]++ ;
+        if( v.y < -v.w) compteur[2]++ ;
+        if( v.y > v.w) compteur[3]++ ;
+        if( v.z < -v.w) compteur[4]++ ;
+        if( v.z > v.w) compteur[5]++ ;
+    }
+    for(int i = 0; i < 6; i++)
+        if( compteur[i] >= 8 ) return false ;
+
+    return true ;
+}
+
+
+int Map::get_ichunk( const Point pos )
+{
+    int x = pos.x-posDepart.x ;
+    int z = pos.z-posDepart.z ;
+
+    if( x < 0 || x >= (int)map_width || z < 0 || z >= (int)map_height )
+        return -1 ;
+
+    int i = x/CHUNK_SIZE ;
+    int j = z/CHUNK_SIZE ;
+    int index_chunk = j * ( map_width / CHUNK_SIZE ) + i ;
+
+    return index_chunk ;
+}
+
+Chunk * Map::get_chunk( const unsigned int pos )
+{
+    if( pos >= chunks.size() )
+        return NULL ;
+
+    return &chunks[pos] ;
+}
+
+bool Chunk::check_collision( const Point pos, vec3 box )
+{
+    for(int i = 0; i < v_count; i++)
+    {
+        if( m_positions[i].x > pos.x-box.x && m_positions[i].x < pos.x+box.x
+        && m_positions[i].y > pos.y-box.y && m_positions[i].y < pos.y+box.y
+        && m_positions[i].z > pos.z-box.z && m_positions[i].z < pos.z+box.z )
+            return true ;
+    }
+    return false ;
+}
+
+
+void Map::build( Camera_FPS& camera )
+{
+    if( nbBloc <= 0 )
+        return ;
+    
+    nbBloc-- ;
+}
+
+
+bool Chunk::remove_vertex( const Point pos )
+{
+    vec3 cube = vec3( (int)pos.x, (int)pos.y, (int)pos.z ) ;
+    std::map<vec3, std::vector<int>>::iterator it;
+    it=cubeToVertex.find(cube);
+    if( it!=cubeToVertex.end() )
+    {
+        std::vector<int> vertices = it->second ;
+        // if( vertices.size() > 0 )
+        // {
+        for( unsigned int i = 0 ; i < vertices.size() ; i++ )
+        {
+            vec3 v = m_positions[vertices[i]] ;
+            vertex( vertices[i], vec3(v.x,v.y-1000,v.z) ) ;
+            // int min = vertices[0] ;
+            // int max = vertices[vertices.size()-1] - vertices[0] ;
+            // m_positions.erase( m_positions.begin()+min, m_positions.begin()+max );
+            // m_normals.erase( m_normals.begin()+min, m_normals.begin()+max );
+        }
+        // }
+        // cubeToVertex.erase( it ) ;
+
+        // v_count = vertex_count() ;       
+        return true ;
+    }
+    return false ;
+}
+
+
+void Map::dig( Camera_FPS& camera )
+{
+    Point devant = camera.getForward( 1 ) ;
+    bool collide = false ;
+    int i_chunk = get_ichunk( devant ) ;
+    bool has_dig = false ;
+    if( i_chunk >= 0 && i_chunk < (int)chunks.size() ){
+        has_dig = get_chunk( i_chunk )->remove_vertex( devant ) ;
+    }
+    
+    if(has_dig)
+        nbBloc++ ;
+}
+
+
+/*==============================
+            DRAW
+==============================*/
+
+void Chunk::draw()
+{
+    //on active le vao du chunk
+    glBindVertexArray( vao ) ;
+    glDrawArrays(DRAW_TYPE, 0, v_count );
+    glBindVertexArray(0);
+}
+
+void Map::build_shadow_map( Light& light )
+{
+    camera_depth.position( Point(light.position) ) ;
+
+    glCullFace(GL_FRONT);
+            
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer) ;
+    glViewport(0, 0, framebuffer_width, framebuffer_height) ;
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            
+    /* MAJ */
+    Transform m = Identity() ;
+    Transform lv = camera_depth.view() ;
+    Transform lp = camera_depth.projection_ortho(framebuffer_width, framebuffer_height) ;
+    Transform lmvp = lp * lv * m ;
+    
+
+    /* GL_DATA */
+    glUseProgram( program_depth ) ;
+    program_uniform(program_depth, "lmvpMatrix", lmvp) ;
+    
+
+    for( unsigned int i = 0 ; i < chunks_visibles.size() ; i++ )
+    {
+        chunks_visibles[i]->draw( ) ;
+    }  
+    glBindVertexArray(0) ; 
+    glUseProgram(0) ;
+}
+
+
+void Map::draw_shadow_map()
+{
+    /* 
+        montrer le resultat de la passe 1
+        copie le framebuffer sur la fenetre
+     */
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glClearColor(1, 1, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT );
+    
+    glBlitFramebuffer(
+        0, 0, framebuffer_width, framebuffer_height,        // rectangle origine dans READ_FRAMEBUFFER
+        0, 0, framebuffer_width, framebuffer_height,        // rectangle destination dans DRAW_FRAMEBUFFER
+        GL_COLOR_BUFFER_BIT, GL_LINEAR);                        // ne copier que la couleur (+ interpoler)
+}
+
+void Map::draw( Camera_FPS& camera, Light& light )
+{
+    build_shadow_map( light ) ;
+
+    glViewport(0, 0, window_width(), window_height()) ;
+
+    if(key_state('c'))
+    { 
+        draw_shadow_map() ;
+    }
+    else
+    {
+        glCullFace(GL_BACK);
+        glUseProgram(program);
+
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer) ;
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0) ;
+
+
+        /* MAJ */
+        Transform model = Identity() ;
+        Transform view = camera.view() ;
+        Transform projection = camera.projection(window_width(), window_height()) ;
+        Transform mv = view * model ;
+        Transform mvp = projection * mv ;
+
+        Transform lv= camera_depth.view();
+        Transform lp= camera_depth.projection_ortho(framebuffer_width, framebuffer_height);
+        Transform lmvp= lp * lv * model;
+
+
+        /* GL_DATA */
+        program_uniform( program, "max_height", (float)MAX_HEIGHT);
+        program_uniform( program, "observer", camera.position() ) ;
+        program_uniform( program, "light.position", light.position ) ;
+        program_uniform( program, "light.diffuse", light.diffuse ) ;
+        program_uniform( program, "light.ambient", light.ambient ) ;
+        program_uniform( program, "light.specular", light.specular ) ;
+        program_uniform( program, "mMatrix", model ) ;
+        // program_uniform( program, "mvMatrix", mv ) ;
+        program_uniform( program, "mvpMatrix", mvp ) ;
+        // program_uniform( program, "normalsMatrix", mv.normal() ) ;
+
+        program_uniform( program, "use_text", use_text ) ;
+        program_use_texture( program, "heightmap_text", 7, heightmap_text ) ;
+        program_uniform( program, "map_width", (float)map_width ) ;
+        program_uniform( program, "map_height", (float)map_height ) ;
+
+        //shadowMap
+        program_uniform( program, "use_shadows", use_shadows ) ;
+        program_uniform( program, "lmvpMatrix", lmvp ) ;
+        program_use_texture( program, "shadowMap", 0, depth_buffer ) ;
+
+        /*
+            DRAW
+        */
+        for( unsigned int i = 0 ; i < chunks_visibles.size() ; i++ )
+        {
+            chunks_visibles[i]->draw( ) ;
+        }
+
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glUseProgram(0) ;
+    }
+}
