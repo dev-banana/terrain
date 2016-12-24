@@ -1,78 +1,109 @@
-#ifndef _SKY_HPP
-#define _SKY_HPP
-
-
-#include "config.hpp"
-
-
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+/**
+* \file sky.hpp
+* \brief Fichier de déclaration des classes Sky et Light
+* \date 22/12/2016
+* \author Anna Benneton
+* \author Anna-Katharina Bergmann
+*/
+//------------------------------
+#ifndef SKY_HPP
+#define SKY_HPP
+//------------------------------
+//------------------------------
+//libs
+//gkit
 #include "window.h"
-#include "program.h" //shaders
+#include "program.h"
 #include "mesh.h"
-#include "wavefront.h"  // pour charger un objet au format .obj
+#include "wavefront.h"
 #include "uniforms.h"
 #include "texture.h"
-#include "draw.h"        // pour dessiner du point de vue d'une camera
-#include "image_io.h"
+//tp2
+#include "config.hpp"
+#include "camera_fps.hpp"
+//------------------------------
 
 
-#include "camera_fps.h"
-
-
+/**
+* \class Light
+* \brief classe qui permet définir une lumière
+* \date 22/12/2016
+* \author Anna Benneton
+* \author Anna-Katharina Bergmann
+*
+*   Une lumière a différentes caractéristiques.
+*   Cette classe permet entre autre de définir le type d'éclairage souhaité.
+*
+*/
 class Light
 {
     public:
-        vec3 position ;
-        vec3 ambient ;
-        vec3 diffuse ;
-        vec3 specular ;
+        vec3 position ;    //!< La position dans le monde de la lumière
+        vec3 ambient ;    //!< La couleure ambiente de la lumière
+        vec3 diffuse ;    //!< La couleure diffuse de la lumière
+        vec3 specular ;    //!< La couleure spéculaire de la lumière
 } ;
 
+/**
+* \class Sky
+* \brief classe qui permet définir une skybox animée
+* \date 22/12/2016
+* \author Anna Benneton
+* \author Anna-Katharina Bergmann
+*
+*   Le ciel est un skydome, dont la couleur dépend de la météo et de l'heure.
+*   Il est composé de nuages, d'étoiles, d'images pour la lune et le soleil.
+*
+*/
 class Sky
 {
-	private:
+	protected:
 
-        /*
-            GLSL
-        */
-        GLuint program ; // shader program
-        GLuint vao ;
-        GLuint v_buffer ;
-        GLuint n_buffer ;
+		bool INIT = true ;    //!< true si initialisation = OK
 
 
-        /*
-            PRIMITIVE
-        */
-        Mesh mesh_sphere ;
-        int v_count ;
-        int dome_radius ;
+        /*==============================
+                    GLSL
+        ==============================*/
+        GLuint program ;    //!< Shader principal
+        GLuint vao ;    //!< Vertex Array Objects
+        GLuint v_buffer ;   //!< Vertex Buffer
+        GLuint n_buffer ;   //!< Normal Buffer
 
 
-        /*
-            SUN
-        */
-        Light sun ;
-        int sun_height ;
-
-        float meteo ;
-        int changeMeteo ;
+        /*==============================
+                    PRIMITIVE
+        ==============================*/ 
+        Mesh mesh_sphere ;  //!< Définition d'un objet Sphere
+        int v_count ;   //!< Nombre de vertex de l'objet sphere
+        int dome_radius ;   //!< Rayon du dome
 
 
-        /*
-            TEXTURES
-        */
-        GLuint clouds1_text ;
-        GLuint clouds2_text ;
-        GLuint moon_text ;
-        GLuint sun_text ;
-        GLuint sky1_text ;
-        GLuint sky2_text ;
+        /*==============================
+                    SUN
+        ==============================*/ 
+        Light sun ; //!< La lumière principale (lumière du soleil)
+        int sun_height ;    //!< La hauteur du soleil dans le ciel
 
 
-		bool INIT = true ;
+        /*==============================
+                    MÉTÉO
+        ==============================*/ 
+        float meteo ;   //!< La météo (0 = mauvais, 1 = ensoleillé)
+        int changeMeteo ;   //!< Variable pour savoir si il faut changer la météo
+
+
+        /*==============================
+                    TEXTURES
+        ==============================*/ 
+        GLuint clouds1_text ;   //!< Texture des nuages par beau temps
+        GLuint clouds2_text ;   //!< Texture des nuages par mauvais temps  
+        GLuint moon_text ;  //!< Texture pour dessiner la lune
+        GLuint sun_text ;   //!< Texture pour colorer le soleil en fonction de l'heure
+        GLuint sky1_text ;  //!< Texture pour colorer le ciel en fonction de l'heure
+        GLuint sky2_text ;  //!< Texture pour colorer l'horrizon' en fonction de l'heure
+
+
 
 
 	public:
@@ -85,15 +116,23 @@ class Sky
         void animate( int time ) ;
         void release() ;
 
-        Light& getSun(){ return sun ; }
-        float weather(){ return meteo ; }
-        void weather( float _w ) ;
 
-        // verifie que le monde est valide
+        /*==============================
+                GETTERs SETTERs
+        ==============================*/ 
+        Light& getSun() ;
+        float weather() ;
+        void weather( float ) ;
+
+
+        /**
+        * \brief Surcharge de l'opérateur de test
+        * \return TRUE si l'initialisation s'est bien passée.
+        */
         operator bool() const 
         { 
             return INIT ; 
         }
 } ;
 
-#endif
+#endif //SKY_HPP

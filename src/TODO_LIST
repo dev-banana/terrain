@@ -1,3 +1,49 @@
+---------------------------------------
+Rendu :
+---------------------------------------
+
+METTRE au propre (commentaires, nom+prénoms, includes inutiles...)
+
+Doxygen
+
+Mettre brdf / différents jeux de lumière en option modifiables
+
+
+Améliorer l'interaction clavier/actions..
+(supprimer la combinaison shift+)
+répartition des fonctions inputs() dans les différents fichiers concernés
+
+
+affichage des infos des commandes dans la console mieux (à l'init)
+
+README + options possibles
+
+RAPPORT
+
+Gestion du temps qui passe mieux (bug quand on met pause)
+max day speed = 16000
+
+test performance en variant size chunk/max height
+
+premake -> release
+
+faire une classe objet heritant de mesh qui gère la position/collision/gravité
+
+faire une classe/liste qui regroupe tous les objets pour les collisions 
+(pas juste la carte)
+On passe cette liste en paramètre plutôt que la carte
+
+Vérifier les publics/protected : faires des get/sets mieux
+
+
+---------------------------------------
+---------------------------------------
+Améliorations :
+---------------------------------------
+
+Créer une vrai gravité (vecteur de force, poids...)
+
+Action USER (creuser, construire)
 
 probleme texture aux poles
 
@@ -13,12 +59,10 @@ Améliorer la physique (déplacements, collision et gravité)
 
 Ajouter des objets animés (avions, oiseau...) -> utilisation courbes de Bezier pour les déplacements
 
-Action USER (creuser, construire)
-
-Améliorer l'interaction clavier/actions..
-(supprimer la combinaison shift+)
-
 Ciel qui se déplace ? (rotation de la terre en plus du soleil et de la lune)
 -> couleur sun/ciel procédurale et non avec des textures
 
 Améliorer les jeux de lumières sur les matériaux
+
+génération terrain procédurale 
+(ou autre qu'avec une heightmap)

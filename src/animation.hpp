@@ -1,71 +1,90 @@
-#ifndef _ANIMATION_HPP
-#define _ANIMATION_HPP
-
-
+/**
+* \file animation.hpp
+* \brief Fichier de déclaration de la classe Animation
+* \date 22/12/2016
+* \author Anna Benneton
+* \author Anna-Katharina Bergmann
+*/
+//------------------------------
+#ifndef ANIMATION_HPP
+#define ANIMATION_HPP
+//------------------------------
+//------------------------------
+//libs
+//gkit
+//tp2
 #include "config.hpp"
-
-
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <map>
-#include "window.h"
-#include "program.h" //shaders
-#include "mesh.h"
-#include "wavefront.h"  // pour charger un objet au format .obj
-#include "uniforms.h"
-#include "texture.h"
-#include "draw.h"        // pour dessiner du point de vue d'une camera
-#include "image_io.h"
-
-
-#include "sky.hpp"
-#include "animation.hpp"
-#include "camera_fps.h"
 #include "map.hpp"
+//------------------------------
 
 
+/**
+* \class Animation
+* \brief classe qui gère des objets supplémentaires
+* \date 22/12/2016
+* \author Anna Benneton
+* \author Anna-Katharina Bergmann
+*
+*   Cette classe regroupe les objets (personnages, décors..) supplémentaires.
+*   Elle permet de travailler sur des petites animations sans interférer avec la carte
+*   ou le ciel.
+*
+*/
 class Animation
 {
-	private:
+	protected:
 
-        /*
-            GLSL
-        */
-        GLuint program ; // shader principal
+		bool INIT = true ;    //!< true si initialisation = OK
 
-        GLuint vao ; // vertex array object
-        GLuint v_buffer ;
-        GLuint n_buffer ;
-        GLuint t_buffer ;
-        int v_count ;
+
+        /*==============================
+                    GLSL
+        ==============================*/  
+        GLuint program ;    //!< Shader principal
+
+        GLuint vao ;    //!< Vertex Array Object
+        GLuint v_buffer ;   //!< Vertex Buffer
+        GLuint n_buffer ;   //!< Normal Buffer
+        GLuint t_buffer ;   //!< Texture Buffer
    
 
-        /*
-			PRIMITIVE
-		*/
-        Mesh mesh_panda ;
-		GLuint texture_panda ;
-        Point pos_panda ;
 
+        /*==============================
+                    PRIMITIVE
+        ==============================*/ 
+        Mesh mesh_panda ;   //!< Un objet représentant un panda
+        int v_count ;   //!< Le nombre de vertex
+        GLuint texture_panda ;  //!< Sa texture assiciée
+        Point pos_panda ;   //!< Sa position actuelle
 
-		bool INIT = true ;
 
 	public:
 
+        /**
+        * \brief Constructeur de la classe Animation
+        */
         Animation(){}
+        /**
+        * \brief Destructeur de la classe Animation
+        */
         ~Animation(){}
 
-        void init() ;
-        void draw( Camera_FPS&, Light& ) ;
-        void animate( Map&, int ) ;
-        void release() ;
 
-        // verifie que le monde est valide
+        
+        void init() ;
+        void release() ;
+        void animate( Map&, int ) ;
+        void draw( Camera_FPS&, Light& ) ;
+              
+
+        /**
+        * \brief Surcharge de l'opérateur de test
+        * \return TRUE si l'initialisation s'est bien passée.
+        */
         operator bool() const 
         { 
             return INIT ; 
         }
 } ;
 
-#endif
+#endif //ANIMATION_HPP

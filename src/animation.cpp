@@ -1,9 +1,26 @@
+/**
+* \file animation.cpp
+* \brief Fichier d'implémentation de la classe Animation
+* \date 22/12/2016
+* \author Anna Benneton
+* \author Anna-Katharina Bergmann
+*/
+//------------------------------
 #include "animation.hpp"
+//------------------------------
+
+
 
 /*==============================
             INIT
 ==============================*/   
 
+/**
+* \brief Initialisation
+*
+*   Chargement des textures et des objets
+*
+*/
 void Animation::init()
 {
 
@@ -83,9 +100,12 @@ void Animation::init()
             QUIT
 ==============================*/
 
+/**
+* \brief libère les objets de la classe
+*/
 void Animation::release()
 {
-    mesh_panda.release();
+    mesh_panda.release() ;
     release_program(program) ;
     glDeleteBuffers(1, &v_buffer) ;
     glDeleteBuffers(1, &n_buffer) ;
@@ -98,6 +118,11 @@ void Animation::release()
             DRAW
 ==============================*/
 
+/**
+* \brief anime les objets
+* \param[in] map : la carte utile pour les collisions
+* \param[in] minutes : une indication du temps écoulé
+*/
 void Animation::animate( Map& map, int minutes)
 {
     vec3 sizePanda = vec3( 5, 3, 3 ) ;
@@ -136,6 +161,11 @@ void Animation::animate( Map& map, int minutes)
     }
 }
 
+/**
+* \brief Dessine les différentes animations
+* \param[in] camera : la caméra fps
+* \param[in] light : la lumière principale
+*/
 void Animation::draw( Camera_FPS& camera, Light& light )
 {
 

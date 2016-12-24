@@ -1,9 +1,27 @@
+/**
+* \file map.cpp
+* \brief Fichier d'implémentation des classes Map et Chunk
+* \date 22/12/2016
+* \author Anna Benneton
+* \author Anna-Katharina Bergmann
+*/
+//------------------------------
 #include "map.hpp"
+//------------------------------
+
+
 
 /*==============================
             INIT
 ==============================*/   
 
+/**
+* \brief Initialisation
+*
+*   Chargement des textures et des objets
+*   Création des Chunks   
+*
+*/
 void Map::init()
 {
 
@@ -217,6 +235,9 @@ void Map::init()
             QUIT
 ==============================*/
 
+/**
+* \brief Destructeur de la classe Chunk
+*/
 Chunk::~Chunk()
 {
     glDeleteBuffers(1, &v_buffer) ;
@@ -224,6 +245,9 @@ Chunk::~Chunk()
     glDeleteVertexArrays(1, &vao) ;
 }
 
+/**
+* \brief libère les objets de la classe
+*/
 void Map::release()
 {
     mesh_cube.release();
@@ -236,6 +260,10 @@ void Map::release()
         INPUTS
 ==============================*/
 
+/**
+* \brief Met à jour la liste des chunks visibles par la caméra
+* \param[in] camera : la caméra qui observe la scène
+*/
 void Map::update_chunks( Camera_FPS& camera )
 {
     Transform model = Identity() ;
@@ -257,6 +285,11 @@ void Map::update_chunks( Camera_FPS& camera )
             CALCULS
 ==============================*/
 
+/**
+* \brief Test la visibilité du chunk par la caméra
+* \param[in] mvp : La matrice MVP de la caméra
+* \return TRUE si le chunk est dans le champs caméra
+*/
 bool Chunk::is_visible( const Transform& mvp )
 {
     std::vector<vec3> pos = boundingbox.positions() ;
@@ -280,30 +313,12 @@ bool Chunk::is_visible( const Transform& mvp )
     return true ;
 }
 
-
-int Map::get_ichunk( const Point pos )
-{
-    int x = pos.x-posDepart.x ;
-    int z = pos.z-posDepart.z ;
-
-    if( x < 0 || x >= (int)map_width || z < 0 || z >= (int)map_height )
-        return -1 ;
-
-    int i = x/CHUNK_SIZE ;
-    int j = z/CHUNK_SIZE ;
-    int index_chunk = j * ( map_width / CHUNK_SIZE ) + i ;
-
-    return index_chunk ;
-}
-
-Chunk * Map::get_chunk( const unsigned int pos )
-{
-    if( pos >= chunks.size() )
-        return NULL ;
-
-    return &chunks[pos] ;
-}
-
+/**
+* \brief Test si un point est en collision avec un chunk
+* \param[in] pos : la postition du point a tester
+* \param[in] box : la taille de la boite englobante du point (son épaisseure)
+* \return Vrai si le point (et les points à l'interieur de sa boite) intersecte le chunk
+*/
 bool Chunk::check_collision( const Point pos, vec3 box )
 {
     for(int i = 0; i < v_count; i++)
@@ -316,7 +331,10 @@ bool Chunk::check_collision( const Point pos, vec3 box )
     return false ;
 }
 
-
+/**
+* \brief Construit des nouveaux blocs sur la carte
+* \param[in] camera : La caméra pour savoir où construire
+*/
 void Map::build( Camera_FPS& camera )
 {
     if( nbBloc <= 0 )
@@ -325,7 +343,11 @@ void Map::build( Camera_FPS& camera )
     nbBloc-- ;
 }
 
-
+/**
+* \brief Supprime les vertex d'un chunk à une certaine position
+* \param[in] pos : la postition du point à enlever
+* \return Vrai si des vertex ont été enlevé
+*/
 bool Chunk::remove_vertex( const Point pos )
 {
     vec3 cube = vec3( (int)pos.x, (int)pos.y, (int)pos.z ) ;
@@ -355,6 +377,10 @@ bool Chunk::remove_vertex( const Point pos )
 }
 
 
+/**
+* \brief Creuse le terrain
+* \param[in] camera : pour savoir où creuser
+*/
 void Map::dig( Camera_FPS& camera )
 {
     Point devant = camera.getForward( 1 ) ;
@@ -374,6 +400,9 @@ void Map::dig( Camera_FPS& camera )
             DRAW
 ==============================*/
 
+/**
+* \brief Dessine un chunk
+*/
 void Chunk::draw()
 {
     //on active le vao du chunk
@@ -382,6 +411,13 @@ void Chunk::draw()
     glBindVertexArray(0);
 }
 
+/**
+* \brief Construit la carte de profondeur
+* \param[in] light : la lumière principale
+*
+*   La camera pour les ombres est à la position de la lumière et regarde au centre du monde.
+*
+*/
 void Map::build_shadow_map( Light& light )
 {
     camera_depth.position( Point(light.position) ) ;
@@ -413,6 +449,9 @@ void Map::build_shadow_map( Light& light )
 }
 
 
+/**
+* \brief Dessine la shadowMap
+*/
 void Map::draw_shadow_map()
 {
     /* 
@@ -430,6 +469,15 @@ void Map::draw_shadow_map()
         GL_COLOR_BUFFER_BIT, GL_LINEAR);                        // ne copier que la couleur (+ interpoler)
 }
 
+/**
+* \brief Dessine la Map
+* \param[in] camera : la caméra fps
+* \param[in] light : la lumière principale
+*
+*   Dessine les différents chunks et les ombres associées.
+*   L'utilisateur peut au choix afficher la carte en mode normal ou en mode profondeur.
+*
+*/
 void Map::draw( Camera_FPS& camera, Light& light )
 {
     build_shadow_map( light ) ;
@@ -496,4 +544,105 @@ void Map::draw( Camera_FPS& camera, Light& light )
         glBindTexture(GL_TEXTURE_2D, 0);
         glUseProgram(0) ;
     }
+}
+
+
+/*==============================
+        GETTERs SETTERs
+==============================*/
+
+/**
+* \brief Trouve le chunk auquel appartient un point 
+* \param[in] pos : Un point de la carte
+* \return l'indice dans la liste des chunks du chunk auquel appartient le point 
+*/
+int Map::get_ichunk( const Point pos )
+{
+    int x = pos.x-posDepart.x ;
+    int z = pos.z-posDepart.z ;
+
+    if( x < 0 || x >= (int)map_width || z < 0 || z >= (int)map_height )
+        return -1 ;
+
+    int i = x/CHUNK_SIZE ;
+    int j = z/CHUNK_SIZE ;
+    int index_chunk = j * ( map_width / CHUNK_SIZE ) + i ;
+
+    return index_chunk ;
+}
+
+/**
+* \brief Retourne un chunk a partir de son indice
+* \param[in] pos : l'indice du chunk dans la liste
+* \return Un pointeur sur le chunk
+*/
+Chunk * Map::get_chunk( const unsigned int pos )
+{
+    if( pos >= chunks.size() )
+        return NULL ;
+
+    return &chunks[pos] ;
+}
+
+/**
+* \brief Retourne l'action de l'utilisateur (creuse ou pas)
+* \return Vrai si l'on est en train de creuser
+*/
+bool Map::digging()
+{
+    return is_digging ;
+}
+
+/**
+* \brief Active/Désactive l'action de creuser
+* \param[in] d : true pour creuser
+*/
+void Map::digging( bool d )
+{
+    is_digging = d ;
+}
+
+/**
+* \brief Retourne l'utilisation ou non d'une texture
+* \return Vrai si une texture est utilisée
+*/
+bool Map::use_texture()
+{
+    return use_text ;
+}
+
+/**
+* \brief Active/Désactive l'utilisation d'une texture
+* \param[in] t : true pour utiliser une texture
+*/
+void Map::use_texture( bool t )
+{
+    use_text = t ;
+}
+
+/**
+* \brief Retourne l'utilisation ou non des ombres 
+* \return Vrai si l'on affiche les ombres
+*/
+bool Map::use_shadow()
+{
+    return use_shadows ;
+}
+
+/**
+* \brief Active/Désactive l'affichage des ombres
+* \param[in] s : true pour afficher les ombres
+*/
+void Map::use_shadow( bool s )
+{
+    use_shadows = s ;
+}
+
+/**
+* \brief Retourne le plus grand côté de la carte
+* \return Max(largeur,hauteur)
+*/
+int Map::getSizeMax()
+{
+    return std::max(map_width, map_height ) ;
 }

@@ -1,9 +1,27 @@
+/**
+* \file scene.cpp
+* \brief Fichier d'implémentation de la classe Scene
+* \date 22/12/2016
+* \author Anna Benneton
+* \author Anna-Katharina Bergmann
+*/
+//------------------------------
 #include "scene.hpp"
+//------------------------------
+
+
 
 /*==============================
             INIT
 ==============================*/   
 
+/**
+* \brief Initialisation
+*
+*   Chargement des propriétés de la scène
+*   Appelle l'initialisation des classes Map, Sky, Animation
+*
+*/
 int Scene::init()
 {
     
@@ -112,10 +130,14 @@ int Scene::init()
             QUIT
 ==============================*/
 
+/**
+* \brief libère les objets de la classe
+*/
 void Scene::quit()
 {
     map.release();
     sky.release() ;
+    animation.release() ;
     glDeleteQueries(1, &time);
     release_widgets( widgets ) ;
 }
@@ -125,6 +147,9 @@ void Scene::quit()
         INPUTS
 ==============================*/
 
+/**
+* \brief Gère les actions utilisateur (clavier, souris)
+*/
 void Scene::compute_input()
 {
     int mx, my ;
@@ -197,10 +222,15 @@ void Scene::compute_input()
 /*==============================
             DRAW
 ==============================*/
-float RandomNumber(float Min, float Max)
-{
-    return ((float(rand()) / float(RAND_MAX)) * (Max - Min)) + Min;
-}
+
+/**
+* \brief Dessine la scène
+* \return 1 si tous c'est bien passé
+*
+*   Boucle principale, elle appelle les différentes méthodes d'affichage des classes
+*   Elle s'occupe des mise à jour en fonction du temps écoulé
+*
+*/
 int Scene::draw( )
 {
 
@@ -219,12 +249,12 @@ int Scene::draw( )
 
 
     sky.animate( minutes ) ;
-    // animation.animate( map, minutes ) ;
+    animation.animate( map, minutes ) ;
 
 
     sky.draw( camera ) ;
     map.draw( camera, sky.getSun() ) ;
-    // animation.draw( camera, sky.getSun() ) ;
+    animation.draw( camera, sky.getSun() ) ;
 
 
     if( is_journee ){
@@ -240,6 +270,12 @@ int Scene::draw( )
     return 1 ;
 }
 
+/**
+* \brief Dessine la console de debug
+*
+*   Affichage des informations et des boutons pour changer l'état de certaines valeurs.
+*
+*/
 void Scene::drawInterface()
 {
     std::chrono::high_resolution_clock::time_point cpu_stop= std::chrono::high_resolution_clock::now();

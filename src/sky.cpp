@@ -1,9 +1,26 @@
+/**
+* \file sky.cpp
+* \brief Fichier d'implémentation des classes Sky et Light
+* \date 22/12/2016
+* \author Anna Benneton
+* \author Anna-Katharina Bergmann
+*/
+//------------------------------
 #include "sky.hpp"
+//------------------------------
+
+
 
 /*==============================
             INIT
 ==============================*/   
 
+/**
+* \brief Initialisation
+*
+*   Chargement des textures et des objets
+*
+*/
 void Sky::init( int size )
 {
     dome_radius = size*3 ; //3x la taille de la heightmap
@@ -91,6 +108,9 @@ void Sky::init( int size )
             QUIT
 ==============================*/
 
+/**
+* \brief libère les objets et textures de la classe
+*/
 void Sky::release()
 {
     glDeleteTextures( 1, &clouds1_text ) ;
@@ -104,17 +124,14 @@ void Sky::release()
 }
 
 
-void Sky::weather( float _w )
-{ 
-    meteo = _w ;
-    if( meteo < 0.01 )
-        meteo = 0.01 ;
-    else if( meteo > 1.0 )
-        meteo = 1.0 ;
-}
 /*==============================
             DRAW
 ==============================*/
+
+/**
+* \brief anime le ciel, change la météo
+* \param[in] minutes : une indication du temps écoulé
+*/
 void Sky::animate( int minutes )
 {
     float angle = minutes*360/(24*60)-90 ;
@@ -143,6 +160,11 @@ void Sky::animate( int minutes )
         }
     }
 }
+
+/**
+* \brief Dessine les différents éléments du ciel
+* \param[in] camera : la caméra fps
+*/
 void Sky::draw( Camera_FPS& camera )
 {
     glCullFace(GL_FRONT);
@@ -183,4 +205,40 @@ void Sky::draw( Camera_FPS& camera )
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindVertexArray(0);
     glUseProgram(0) ;
+}
+
+
+/*==============================
+        GETTERs SETTERs
+==============================*/
+
+/**
+* \brief Accès au soleil
+* \return Light le soleil
+*/
+Light& Sky::getSun()
+{
+    return sun ;
+}
+
+/**
+* \brief Donne la météo actuelle
+* \return la valeur entre 0 et 1 de la météo
+*/
+float Sky::weather()
+{
+    return meteo ;
+}
+
+/**
+* \brief Défini la valeur météo
+* \param[in] _w : la nouvelle valeur de la météo
+*/
+void Sky::weather( float _w )
+{ 
+    meteo = _w ;
+    if( meteo < 0.01 )
+        meteo = 0.01 ;
+    else if( meteo > 1.0 )
+        meteo = 1.0 ;
 }

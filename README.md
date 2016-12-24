@@ -16,7 +16,7 @@ ______________________
 Pour compiler :
 	
 	premake4 gmake
-	make
+	make [-j8]
 
 Pour lancer le programme :
 

@@ -1,6 +1,15 @@
-#ifndef _CONFIG_HPP
-#define _CONFIG_HPP
-
+/**
+* \file config.hpp
+* \brief Fichier de déclaration des variables globales utilisées à l'initialisation
+* \date 22/12/2016
+* \author Anna Benneton
+* \author Anna-Katharina Bergmann
+*/
+//------------------------------
+#ifndef CONFIG_HPP
+#define CONFIG_HPP
+//------------------------------
+//------------------------------
 
 #define GRAVITY_VALUE 9.81
 #define GRAVITY false
@@ -33,4 +42,4 @@
 
 #define DRAW_TYPE GL_TRIANGLES //GL_LINES
 
-#endif
+#endif //CONFIG_HPP
