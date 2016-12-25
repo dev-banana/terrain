@@ -2,38 +2,37 @@
 Rendu :
 ---------------------------------------
 
-METTRE au propre (commentaires, nom+prénoms, includes inutiles...)
+/// fait
+/// METTRE au propre (commentaires, nom+prénoms, includes inutiles...)
+/// (supprimer la combinaison shift+KEY)
 
-Doxygen
+
+
+Gestion du temps qui passe mieux (bug quand on met pause) dans une classe a part ?
+max day speed = 16000
 
 Mettre brdf / différents jeux de lumière en option modifiables
 
-
 Améliorer l'interaction clavier/actions..
-(supprimer la combinaison shift+)
-répartition des fonctions inputs() dans les différents fichiers concernés
 
+répartition des fonctions inputs() dans les différents fichiers concernés ?
 
 affichage des infos des commandes dans la console mieux (à l'init)
+
+test performance en variant size chunk/max height
+
+faire une classe heritant de mesh qui gère la position/collision/gravité (pour les objets animés)
+
+faire une liste (ou classe) qui regroupe tous les objets actifs pour les collisions (pas juste la carte)
+On passe cette liste en paramètre plutôt que la Map
+
+Vérifier les publics/protected : faires des get/sets mieux
+
+premake -> release
 
 README + options possibles
 
 RAPPORT
-
-Gestion du temps qui passe mieux (bug quand on met pause)
-max day speed = 16000
-
-test performance en variant size chunk/max height
-
-premake -> release
-
-faire une classe objet heritant de mesh qui gère la position/collision/gravité
-
-faire une classe/liste qui regroupe tous les objets pour les collisions 
-(pas juste la carte)
-On passe cette liste en paramètre plutôt que la carte
-
-Vérifier les publics/protected : faires des get/sets mieux
 
 
 ---------------------------------------

@@ -23,9 +23,6 @@
 /**
 * \class Chunk
 * \brief classe qui permet de définir une région de la carte
-* \date 22/12/2016
-* \author Anna Benneton
-* \author Anna-Katharina Bergmann
 *
 *   Un chunk est une partie (carré) de la carte constituée de cube. 
 *   Elle est définie comme un seul mesh, c'est à dire comme un ensemble de vertex.
@@ -70,9 +67,6 @@ class Chunk : public Mesh
 /**
 * \class Map
 * \brief classe qui permet de définir une carte
-* \date 22/12/2016
-* \author Anna Benneton
-* \author Anna-Katharina Bergmann
 *
 *   La classe Map est un ensemble de Chunk.
 *   Elle est initialisée à partir d'une image représentant les différents hauteurs.

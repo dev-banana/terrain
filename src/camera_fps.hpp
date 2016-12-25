@@ -22,9 +22,6 @@ class Map ;
 /**
 * \class Camera_FPS
 * \brief caméra à la 1ere personne
-* \date 22/12/2016
-* \author Anna Benneton
-* \author Anna-Katharina Bergmann
 *
 *   Cette classe simule une caméra "humaine" avec une vue à la 1ere personne.
 *   Elle permet de d'effectuer des déplacements tel que avancer/reculer, gauche/droite, sauter

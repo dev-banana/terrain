@@ -21,9 +21,6 @@
 /**
 * \class Animation
 * \brief classe qui gère des objets supplémentaires
-* \date 22/12/2016
-* \author Anna Benneton
-* \author Anna-Katharina Bergmann
 *
 *   Cette classe regroupe les objets (personnages, décors..) supplémentaires.
 *   Elle permet de travailler sur des petites animations sans interférer avec la carte

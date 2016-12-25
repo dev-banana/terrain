@@ -27,9 +27,6 @@
 /**
 * \class Light
 * \brief classe qui permet définir une lumière
-* \date 22/12/2016
-* \author Anna Benneton
-* \author Anna-Katharina Bergmann
 *
 *   Une lumière a différentes caractéristiques.
 *   Cette classe permet entre autre de définir le type d'éclairage souhaité.
@@ -47,9 +44,6 @@ class Light
 /**
 * \class Sky
 * \brief classe qui permet définir une skybox animée
-* \date 22/12/2016
-* \author Anna Benneton
-* \author Anna-Katharina Bergmann
 *
 *   Le ciel est un skydome, dont la couleur dépend de la météo et de l'heure.
 *   Il est composé de nuages, d'étoiles, d'images pour la lune et le soleil.
