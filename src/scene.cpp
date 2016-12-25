@@ -146,7 +146,7 @@ void Scene::compute_input()
     if( ks[SDL_SCANCODE_ESCAPE] )
         quit() ;
     else 
-    if( key_state('z') )
+    if( key_state('z') )        // Z-Q-S-D  -> Déplacement
         camera.avance( map ) ; 
     if( key_state('s') )
         camera.recule( map ) ; 
@@ -154,28 +154,29 @@ void Scene::compute_input()
         camera.gauche( map ) ; 
     if( key_state('d') )
         camera.droite( map ) ; 
-    if( key_state(' ') )
+    if( key_state(' ') )        // SPACE  -> Déplacement
         camera.jump( map, 1 ) ;
-    if( ks[SDL_SCANCODE_KP_PLUS] )
+    if( ks[SDL_SCANCODE_KP_PLUS] ) // + -> ZOOM IN
         camera.zoomIn() ;
-    if( ks[SDL_SCANCODE_KP_MINUS] )
+    if( ks[SDL_SCANCODE_KP_MINUS] ) // - -> ZOOM OUT
         camera.zoomOut() ;
 
-    if( ks[SDL_SCANCODE_TAB] )
+    if( ks[SDL_SCANCODE_TAB] )  //  TAB -> Console Debug
         release[0] = 1 ;
     else if(release[0] == 1 )
     {
         release[0] = 0 ;
         showConsole = !showConsole ;
     }
-    if( ks[SDL_SCANCODE_CAPSLOCK] )
+    if( ks[SDL_SCANCODE_CAPSLOCK] ) // CAPSLOCK -> Active MOUSE
         release[1] = 1 ;
     else if(release[1] == 1 )
     {
         release[1] = 0 ;
         is_mouse = !is_mouse ;
     }
-    if( key_state('t') )
+
+    if( key_state('t') )    // T -> ACTIVE TEXTURE
         release[2] = 1 ;
     else if(release[2] == 1 )
     {
@@ -183,7 +184,7 @@ void Scene::compute_input()
         map.use_texture( !map.use_texture() ) ;
         b_is_texture = map.use_texture()?1:0 ;
     }
-    if( key_state('y') )
+    if( key_state('y') )    // Y -> ACTIVE OMBRES
         release[3] = 1 ;
     else if(release[3] == 1 )
     {
@@ -192,6 +193,50 @@ void Scene::compute_input()
         b_is_shadows = map.use_shadow()?1:0 ;
     }
 
+    if( key_state('u') )    // U -> ACTIVE JOURNEE
+        release[4] = 1 ;
+    else if(release[4] == 1 )
+    {
+        release[4] = 0 ;
+        horloge.is_journee = !horloge.is_journee ;
+        b_is_journee = horloge.is_journee?1:0 ;
+    }
+
+    if( key_state('m') )    // M -> METEO --
+        release[5] = 1 ;
+    else if(release[5] == 1 )
+    {
+        release[5] = 0 ;
+        sky.weather( sky.weather()-0.05 ) ;
+    }
+
+    if( key_state('p') )    // P -> METEO ++
+        release[6] = 1 ;
+    else if(release[6] == 1 )
+    {
+        release[6] = 0 ;
+        sky.weather( sky.weather()+0.05 ) ;
+    }
+
+    if( key_state('l') )    // L -> DAY SPEED --
+        release[7] = 1 ;
+    else if(release[7] == 1 )
+    {
+        release[7] = 0 ;
+        horloge.speed /= 2 ;
+        if( horloge.speed < 1 )
+            horloge.speed = 1 ;
+    }
+
+    if( key_state('o') )    // O -> DAY SPEED ++
+        release[8] = 1 ;
+    else if(release[8] == 1 )
+    {
+        release[8] = 0 ;
+        horloge.speed *= 2 ;
+        if( horloge.speed > 16000 )
+            horloge.speed = 16000 ;
+    }
 
     if( is_mouse && !(mb & SDL_BUTTON(1)) ) //tenir le bouton enfoncé désactive la rotation caméra
     camera.rotate( mx, my );
@@ -214,17 +259,15 @@ void Scene::compute_input()
 int Scene::draw( )
 {
 
-    glBeginQuery( GL_TIME_ELAPSED, horloge.gpu );
-    horloge.cpu_start= std::chrono::high_resolution_clock::now();
+    horloge.timerBegin() ;
 
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) ;
 
     compute_input() ;
 
-    if( is_gravity && SDL_GetTicks() - horloge.ellapse > 10 )
+    if( is_gravity && SDL_GetTicks() - horloge.timeBefore > 5 )
     {
         camera.gravite( map, GRAVITY_VALUE/15 ) ;
-        horloge.ellapse = SDL_GetTicks() ;
     }
 
 
@@ -236,14 +279,8 @@ int Scene::draw( )
     map.draw( camera, sky.getSun() ) ;
     animation.draw( camera, sky.getSun() ) ;
 
-
-    if( horloge.is_journee ){
-        horloge.timeOfDay = (int)(SDL_GetTicks()*horloge.speed)%(1000*60*60*24) ; 
-        horloge.secondes = horloge.timeOfDay/1000 ;
-        horloge.minutes = horloge.secondes/60 ;
-        horloge.hour = horloge.minutes/60 ;
-    }
     
+    horloge.timerEnd() ;
 
     drawInterface() ;
   
@@ -258,26 +295,6 @@ int Scene::draw( )
 */
 void Scene::drawInterface()
 {
-    std::chrono::high_resolution_clock::time_point cpu_stop= std::chrono::high_resolution_clock::now();
-    long long int cpu_time= std::chrono::duration_cast<std::chrono::nanoseconds>(cpu_stop - horloge.cpu_start).count();
-    
-
-    glEndQuery( GL_TIME_ELAPSED ) ;
-    std::chrono::high_resolution_clock::time_point wait_start= std::chrono::high_resolution_clock::now();
-    GLint64 gpu_time = 0 ;
-    glGetQueryObjecti64v( horloge.gpu, GL_QUERY_RESULT, &gpu_time ) ;
-    std::chrono::high_resolution_clock::time_point wait_stop= std::chrono::high_resolution_clock::now();
-    long long int wait_time= std::chrono::duration_cast<std::chrono::nanoseconds>(wait_stop - wait_start).count();
-
-    
-    int milli_gpu = (int) ( gpu_time / 1000000 ) ;
-    int micro_gpu = (int) ( (gpu_time / 1000) % 1000 );
-
-    int milli_cpu = (int) ( cpu_time / 1000000 ) ;
-    int micro_cpu = (int) ( (cpu_time / 1000) % 1000 );
-
-    int fps = (int) 1/( (cpu_time+gpu_time+wait_time) / 1000000000.0 ) ;
-
 
     begin(widgets, 1, 0); 
 
@@ -291,15 +308,14 @@ void Scene::drawInterface()
 
 
 
-
         begin_line(widgets); 
         label(widgets, "  _________________________") ;
         begin_line(widgets); 
-        label(widgets, "  | GPU : %02dms %03dus      |", milli_gpu, micro_gpu ) ;
+        label(widgets, "  | GPU : %02dms %03dus      |", horloge.milli_gpu, horloge.micro_gpu ) ;
         begin_line(widgets); 
-        label(widgets, "  | CPU : %02dms %03dus      |", milli_cpu, micro_cpu ) ;
+        label(widgets, "  | CPU : %02dms %03dus      |", horloge.milli_cpu, horloge.micro_cpu ) ;
         begin_line(widgets); 
-        label(widgets, "  | FPS : %03d             |", fps ) ;
+        label(widgets, "  | FPS : %03d             |", horloge.fps ) ;
         begin_line(widgets); 
         label(widgets, "  |                       |") ;
         begin_line(widgets); 
@@ -360,10 +376,14 @@ void Scene::drawInterface()
         }
         if( b_speedM ){
             horloge.speed /= 2 ;
+            if( horloge.speed < 1 )
+                horloge.speed = 1 ;
             b_speedM = 0 ;
         }
         if( b_speedP ){
             horloge.speed *= 2 ;
+            if( horloge.speed > 16000 )
+                horloge.speed = 16000 ;
             b_speedP = 0 ;
         }
 

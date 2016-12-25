@@ -130,6 +130,7 @@ OBJECTS := \
 	$(OBJDIR)/map.o \
 	$(OBJDIR)/scene.o \
 	$(OBJDIR)/sky.o \
+	$(OBJDIR)/timer.o \
 	$(OBJDIR)/tp2.o \
 
 RESOURCES := \
@@ -255,6 +256,9 @@ $(OBJDIR)/scene.o: src/scene.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 $(OBJDIR)/sky.o: src/sky.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+$(OBJDIR)/timer.o: src/timer.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 $(OBJDIR)/tp2.o: src/tp2.cpp

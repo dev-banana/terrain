@@ -5,15 +5,13 @@ Rendu :
 /// fait
 /// METTRE au propre (commentaires, nom+prénoms, includes inutiles...)
 /// (supprimer la combinaison shift+KEY)
+/// Gestion du temps qui passe mieux (bug quand on met pause) dans une classe a part ?
+/// max day speed = 16000
 
 
-
-Gestion du temps qui passe mieux (bug quand on met pause) dans une classe a part ?
-max day speed = 16000
+Améliorer l'interaction clavier/actions..  -> creer une interface debug ++
 
 Mettre brdf / différents jeux de lumière en option modifiables
-
-Améliorer l'interaction clavier/actions..
 
 répartition des fonctions inputs() dans les différents fichiers concernés ?
 
@@ -25,6 +23,8 @@ faire une classe heritant de mesh qui gère la position/collision/gravité (pour
 
 faire une liste (ou classe) qui regroupe tous les objets actifs pour les collisions (pas juste la carte)
 On passe cette liste en paramètre plutôt que la Map
+
+gravité, collision(vecteur normal) ++
 
 Vérifier les publics/protected : faires des get/sets mieux
 

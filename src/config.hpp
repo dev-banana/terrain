@@ -14,13 +14,15 @@
 #define GRAVITY_VALUE 9.81
 #define GRAVITY false
 #define COLLISION true
-#define JOURNEE true
 #define SHADOWS true
 #define TEXTURE true
 #define MOUSE true
 #define SHOW_DEBUG true
 
-#define DAY_SPEED 2000
+
+#define JOURNEE true
+#define DAY_SPEED 1000
+#define START_HOUR 6
 
 #define CHUNK_SIZE 64
 #define MAX_HEIGHT 40

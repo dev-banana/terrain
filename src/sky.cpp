@@ -139,8 +139,9 @@ void Sky::animate( int minutes )
     sun.position.x = sun_height * cos( angle_r ) ;
     sun.position.y = sun_height * sin( angle_r ) ;
 
+    int step = 6 ; //change la météo toutes les 6h
 
-    if( (int)minutes/60 % 6 == 0 && (changeMeteo == -1 || changeMeteo != (int)minutes/60 ) )
+    if( (int)minutes/60 % step == 0 && (changeMeteo == -1 || changeMeteo != (int)minutes/60 ) )
     {
         changeMeteo = (int)minutes/60 ;
 

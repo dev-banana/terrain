@@ -9,3 +9,5 @@ Les classes suivent le même patern :
 Le skydome permet de ne pas avoir de probleme de cohérences dans les angles et de fluidifier les animations du ciel.
 
 Caméra : Déplacement possible en laissant une marge dans l'angle devant
+
+Pas bien : les petits points brillant sur les cubes (interstices ?)
