@@ -7,7 +7,7 @@ Rendu :
 /// (supprimer la combinaison shift+KEY)
 /// Gestion du temps qui passe mieux (bug quand on met pause) dans une classe a part ?
 /// max day speed = 16000
-
+/// temps moins saccadé
 
 Améliorer l'interaction clavier/actions..  -> creer une interface debug ++
 

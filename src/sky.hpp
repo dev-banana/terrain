@@ -20,6 +20,7 @@
 #include "texture.h"
 //tp2
 #include "config.hpp"
+#include "timer.hpp"
 #include "camera_fps.hpp"
 //------------------------------
 
@@ -83,6 +84,7 @@ class Sky
         /*==============================
                     MÉTÉO
         ==============================*/ 
+        bool is_meteo ; //!< (Des)Active le changement de météo
         float meteo ;   //!< La météo (0 = mauvais, 1 = ensoleillé)
         int changeMeteo ;   //!< Variable pour savoir si il faut changer la météo
 
@@ -107,7 +109,7 @@ class Sky
 
         void init( int ) ;
         void draw( Camera_FPS& ) ;
-        void animate( int time ) ;
+        void animate( Timer ) ;
         void release() ;
 
 
@@ -117,6 +119,8 @@ class Sky
         Light& getSun() ;
         float weather() ;
         void weather( float ) ;
+        bool change_weather() ;
+        void change_weather( bool ) ;
 
 
         /**

@@ -85,6 +85,7 @@ void print_background( Text& text, const int x, const int y, const int backgroun
 void print_background( Text& text, const int x, const int y, const char *message );
 //! affiche un texte a la position x, y. 
 void print( Text& text, const int x, const int y, const char *message );
+void print( Text& text, const int x, const int y, const int background, const char *message );
 //! affiche un texte a la position x, y sur un fond par defaut.
 void printf_background( Text& text, const int x, const int y, const char *format, ... );
 //! affiche un texte a la position x, y. meme utilisation que printf().

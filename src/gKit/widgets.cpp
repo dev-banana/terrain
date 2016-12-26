@@ -1,4 +1,3 @@
-
 #include <cstdio>
 #include <cassert>
 #include <cstring>
@@ -17,6 +16,7 @@ Widgets create_widgets( )
     w.focus= 0; w.fx= 0; w.fy= 0;
     w.mb= 0; w.mx= 0; w.my= 0;
     w.wx= 0; w.wy= 0;
+    w.background = 0 ;
     return w;
 }
 
@@ -26,9 +26,12 @@ void release_widgets( Widgets& w )
 }
 
 
-void begin( Widgets& w, int startX, int startY )
+void begin( Widgets& w, int startX, int startY, int bckgrnd )
 {
     clear(w.console);
+
+    w.background = bckgrnd ;
+    
     w.px= startX;
     w.py= startY;
 
@@ -112,7 +115,7 @@ Rect place( Widgets& w, const int width, const int height= 1 )
     
     if(height == 1)
         // place le prochain widget a droite 
-        w.px= r.x + r.w +2; // +2 marge
+        w.px= r.x + r.w ; // +2 marge
     else
         // place le prochain widget sur la ligne suivante
         w.py= w.py + height;
@@ -149,12 +152,12 @@ void label( Widgets& w, const char *format, ... )
     va_end(args);
     
     Rect r= place(w, tmp);
-    print(w.console, r.x, r.y, tmp);
+    print(w.console, r.x, r.y, w.background, tmp);
 }
 
 bool button( Widgets& w, const char *text, int& status )
 {
-    Rect r= place(w, (int) strlen(text) +2);
+    Rect r= place(w, (int) strlen(text) + 2);
     
     bool change= false;
     if(w.mb > 0 && overlap(r, w.mx, w.my))
@@ -164,9 +167,10 @@ bool button( Widgets& w, const char *text, int& status )
     }
 
     char tmp[128];
-    sprintf(tmp, "%c %s", (status != 0) ? 22 : 20, text);  // strlen(text) + 2
+    // sprintf(tmp, "%c %s", (status != 0) ? 22 : 20, text);  // strlen(text) + 2
+    sprintf(tmp, "%s %c", text, (status != 0) ? 22 : 20);  // strlen(text) + 2
 
-    print(w.console, r.x, r.y, tmp);
+    print(w.console, r.x, r.y, w.background, tmp);
     return change;
 }
 
@@ -184,7 +188,7 @@ bool select( Widgets& w, const char *text, const int option, int& status )
     char tmp[128];
     sprintf(tmp, "%c %s", (status == option) ? 4 : 3, text);  // strlen(text) + 2
 
-    print(w.console, r.x, r.y, tmp);
+    print(w.console, r.x, r.y, w.background, tmp);
     return change;
 }
 
@@ -218,13 +222,13 @@ bool value( Widgets& w, const char *label, int& value, const int value_min, cons
         
         sprintf(tmp, "%s: ", label);
         int l= (int) strlen(tmp);
-        print(w.console, r.x, r.y, tmp);
+        print(w.console, r.x, r.y, w.background, tmp);
         
         sprintf(tmp, "%4d", value);
         print_background(w.console, r.x + l, r.y, tmp);
     }
     else
-        print(w.console, r.x, r.y, tmp);
+        print(w.console, r.x, r.y, w.background, tmp);
     
     return change;
 }
@@ -272,7 +276,7 @@ void text_area( Widgets& w, const int height, const char *text, int& begin_line 
         }
     }
     // affiche le texte
-    print(w.console, r.x, r.y, text + offset);
+    print(w.console, r.x, r.y, w.background, text + offset);
 }
 
 bool edit( Widgets& w, int text_size, char *text )
@@ -374,5 +378,3 @@ void drawWidgets( Widgets& w, const int width, const int height )
 {
     drawText(w.console, width, height);
 }
-
-

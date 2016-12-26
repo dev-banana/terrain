@@ -79,6 +79,8 @@ struct Widgets
     
     int key;            //!< touche
     unsigned int mod;   //!< touches supplementaires, alt, ctrl, etc.
+
+    int background ;
 };
 
 
@@ -88,7 +90,7 @@ Widgets create_widgets( );
 void release_widgets( Widgets& widgets );
 
 //! debut de la description des elements de l'interface graphique.
-void begin( Widgets& widgets, int startX, int startY );
+void begin( Widgets& widgets, int startX, int startY, int bckgrnd=0 );
 
 //! place les prochains elements sur une nouvelle ligne.
 void begin_line( Widgets& widgets );

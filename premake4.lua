@@ -68,11 +68,9 @@ solution "gKit2light"
 
 
  -- description des fichiers communs
-local gkit_files = { "src/gKit/*.cpp", "src/gKit/*.h" }
+local gKit_files = { "src/gKit/*.cpp", "src/gKit/*.h" }
 
  -- description des projets		
-
-    
 local projects = {
 	"terrain"
 }
@@ -82,6 +80,6 @@ for i, name in ipairs(projects) do
 		language "C++"
 		kind "ConsoleApp"
 		targetdir "bin"
-		files ( gkit_files )
+		files ( gKit_files )
 		files { "src/*.cpp" }
 end

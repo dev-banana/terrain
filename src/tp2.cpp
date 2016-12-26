@@ -35,7 +35,6 @@ int main( int argc, char **argv )
     Context context= create_context(window);
     if(context == NULL) return 1;
 
-
     if( scene.init() == - 1 )
     {
         printf("[error] init failed.\n");

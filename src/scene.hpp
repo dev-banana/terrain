@@ -14,6 +14,7 @@
 #include <chrono>
 //gkit
 #include "widgets.h"
+//ui
 //tp2
 #include "config.hpp"
 #include "camera_fps.hpp"
@@ -46,6 +47,7 @@ class Scene
         /*==============================
                     GAMEPLAY
         ==============================*/
+        bool is_godmod ;    //!< activation du God Mode
         bool is_gravity ;    //!< activation de la gravité
         bool is_collision ;    //!< activation des collisions caméra
         bool is_mouse ;    //!< activation de la rotation caméra avec la souris
@@ -55,12 +57,18 @@ class Scene
                 DEBUG ET ACTIONS
         ==============================*/
         bool showConsole ;    //!< Affiche la console avec les informations de debug
-        Widgets widgets;    //!< Liste des widgets de debug
+        
+        Widgets widgets_options ;    //!< Boutons et paramètres
+        Widgets widgets_timer ;    //!< Indication des différents timers
+        Widgets widgets_infos ;    //!< Indication diverse (speed, météo...)
+        
+        int b_is_godmod ;    //!< Bouton pour (des)activer le God Mode
         int b_is_gravity ;    //!< Bouton pour (des)activer la gravité
         int b_is_collision ;    //!< Bouton pour (des)activer les collisions
         int b_is_journee ;    //!< Bouton pour (des)activer les journees
-        int b_is_texture;    //!< Bouton pour (des)activer les textures
-        int b_is_shadows;    //!< Bouton pour (des)activer les ombres
+        int b_is_texture ;    //!< Bouton pour (des)activer les textures
+        int b_is_shadows ;    //!< Bouton pour (des)activer les ombres
+        int b_is_meteo ;    //!< Bouton pour (des)activer les changements climatiques
         int b_weatherM ;    //!< Bouton pour rendre la météo plus mauvaise
         int b_weatherP ;    //!< Bouton pour améliorer la météo
         int b_speedM ;    //!< Bouton pour baisser la vitese des journées

@@ -121,9 +121,9 @@ void Animation::release()
 /**
 * \brief anime les objets
 * \param[in] map : la carte utile pour les collisions
-* \param[in] minutes : une indication du temps écoulé
+* \param[in] timer : une indication du temps écoulé
 */
-void Animation::animate( Map& map, int minutes)
+void Animation::animate( Map& map, Timer timer)
 {
     vec3 sizePanda = vec3( 5, 3, 3 ) ;
     Point newP ;

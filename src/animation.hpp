@@ -70,7 +70,7 @@ class Animation
         
         void init() ;
         void release() ;
-        void animate( Map&, int ) ;
+        void animate( Map&, Timer ) ;
         void draw( Camera_FPS&, Light& ) ;
               
 

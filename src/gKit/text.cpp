@@ -1,4 +1,3 @@
-
 #include <ctype.h>
 #include <cstdio>
 #include <cstdarg>
@@ -78,7 +77,7 @@ void clear( Text& text )
 
 
 static
-void print( Text& text, const int px, const int py, const int background, const char *message )
+void printStat( Text& text, const int px, const int py, const int background, const char *message )
 {
     int x= px;
     int y= 23 - py;     // premiere ligne en haut...
@@ -116,12 +115,17 @@ void print_background( Text& text, const int px, const int py, const int backgro
 
 void print_background( Text& text, const int px, const int py, const char *message )
 {
-    print(text, px, py, 2, message);
+    printStat(text, px, py, 2, message);
 }
 
 void print( Text& text, const int px, const int py, const char *message )
 {
-    print(text, px, py, 0, message);
+    printStat(text, px, py, 0, message);
+}
+
+void print( Text& text, const int px, const int py, const int background, const char *message )
+{
+    printStat(text, px, py, background, message);
 }
 
 void printf_background( Text& text, const int px, const int py, const char *format, ... )
@@ -134,7 +138,7 @@ void printf_background( Text& text, const int px, const int py, const char *form
     va_end(args);
 
     tmp[24*128]= 0;
-    print(text, px, py, 2, tmp);
+    printStat(text, px, py, 2, tmp);
 }
 
 void printf( Text& text, const int px, const int py, const char *format, ... )
@@ -147,7 +151,7 @@ void printf( Text& text, const int px, const int py, const char *format, ... )
     va_end(args);
 
     tmp[24*128]= 0;
-    print(text, px, py, 0, tmp);
+    printStat(text, px, py, 0, tmp);
 }
 
 void default_color( Text& text, const Color& color )
@@ -177,4 +181,3 @@ void drawText( const Text& text, const int width, const int height )
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
 }
-

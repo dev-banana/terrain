@@ -34,6 +34,7 @@ void Sky::init( int size )
     sun.diffuse = vec3( 1.0f, 1.0f, 1.0f ) ;
     sun.specular = vec3( 0.08f, 0.08f, 0.08f ) ;
 
+    is_meteo = USE_METEO ;
     meteo = 1.0 ;
     changeMeteo = -1 ;
     
@@ -130,34 +131,37 @@ void Sky::release()
 
 /**
 * \brief anime le ciel, change la météo
-* \param[in] minutes : une indication du temps écoulé
+* \param[in] timer : une indication du temps écoulé
 */
-void Sky::animate( int minutes )
+void Sky::animate( Timer timer )
 {
-    float angle = minutes*360/(24*60)-90 ;
+    float angle = (float)timer.minutes*360.f/(24.f*60.f)-90.f ;
     float angle_r = 2 * M_PI * (angle / 360) ;
     sun.position.x = sun_height * cos( angle_r ) ;
     sun.position.y = sun_height * sin( angle_r ) ;
 
-    int step = 6 ; //change la météo toutes les 6h
+    if( is_meteo )
+    {    
+        int step = 6 ; //change la météo toutes les 6h
 
-    if( (int)minutes/60 % step == 0 && (changeMeteo == -1 || changeMeteo != (int)minutes/60 ) )
-    {
-        changeMeteo = (int)minutes/60 ;
+        if( (int)timer.hour % step == 0 && (changeMeteo == -1 || changeMeteo != (int)timer.hour ) )
+        {
+            changeMeteo = (int)timer.hour ;
 
-        if( meteo <= 0.01 )
-            meteo = 0.1 ;
-        else if( meteo == 0.9 )
-            meteo = 1 ;
-        else if( (int)(meteo*10) % 2 == 0 ){
-            meteo -= 0.2 ;
-            if( meteo == 0.0 )
-                meteo = 0.01 ;
-        }
-        else{
-            meteo += 0.2 ;
-            if( meteo > 0.9 )
+            if( meteo < 0.5 )
+                meteo = 0.5 ;
+            else if( meteo == 0.9 )
                 meteo = 1 ;
+            else if( (int)(meteo*10) % 2 == 0 ){
+                meteo -= 0.2 ;
+                if( meteo <= 0.4 )
+                    meteo = 0.5 ;
+            }
+            else{
+                meteo += 0.2 ;
+                if( meteo > 0.9 )
+                    meteo = 1 ;
+            }
         }
     }
 }
@@ -242,4 +246,21 @@ void Sky::weather( float _w )
         meteo = 0.01 ;
     else if( meteo > 1.0 )
         meteo = 1.0 ;
+}
+/**
+* \brief Renvoi le changement de météo
+* \return True si la météo change automatiquement
+*/
+bool Sky::change_weather()
+{
+    return is_meteo ;
+}
+
+/**
+* \brief Défini le changement automatique de météo
+* \param[in] _b : la nouvelle valeur de la météo
+*/
+void Sky::change_weather( bool _b )
+{ 
+    is_meteo = _b ;
 }
