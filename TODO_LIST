@@ -67,3 +67,26 @@ Améliorer les jeux de lumières sur les matériaux
 
 génération terrain procédurale 
 (ou autre qu'avec une heightmap)
+
+
+---------------------------------------
+---------------------------------------
+Idées rapport :
+---------------------------------------
+
+Les classes suivent le même patern :
+
+        void init() ;
+        void draw() ;
+        void animate() ;
+        void release() ;
+
+
+Le skydome permet de ne pas avoir de probleme de cohérences dans les angles et de fluidifier les animations du ciel.
+par contre probleme aux poles
+
+Caméra : Déplacement possible en laissant une marge dans l'angle devant
+
+Pas bien : les petits points brillant sur les cubes (interstices ?)
+
+utilisation de la librairie GUI : (link git)
