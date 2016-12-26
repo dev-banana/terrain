@@ -40,7 +40,7 @@ UTILISATION
 ------
 
 
-Les comportements et options du Gameplay par défauts sont définis dans le fichier *config.hpp*.
+Les comportements et options de gameplay par défauts sont définis dans le fichier *src/config.hpp*.
 Ces options sont pour la plupart modifiables en cours de jeu.
 
 Pour ouvrir le menu :
