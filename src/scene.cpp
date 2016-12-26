@@ -102,13 +102,8 @@ int Scene::init()
 
 
     std::cout << std::endl << "initialisation : OK " << std::endl << std::endl ;
-    std::cout << std::endl << "commandes principales : " << std::endl<< std::endl ;
-    std::cout << "  ROTATION SOURIS : CAPS" << std::endl ;
-    std::cout << "  DEPLACEMENTS : Z-Q-S-D " << std::endl ;
-    std::cout << "  SAUTER : ESPACE " << std::endl ;
-    std::cout << "  ZOOMER : - ET +" << std::endl << std::endl ;
-    std::cout << "  OPTIONS et DEBUGS :  TAB" << std::endl << std::endl ;
-
+    std::cout << std::endl << "commandes principales : TAB" << std::endl<< std::endl ;
+    
     return 0 ;
 }
 

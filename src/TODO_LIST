@@ -8,23 +8,16 @@ Rendu :
 /// Gestion du temps qui passe mieux (bug quand on met pause) dans une classe a part ?
 /// max day speed = 16000
 /// temps moins saccadé
+/// Améliorer l'interaction clavier/actions..  -> creer une interface debug ++
 
-Améliorer l'interaction clavier/actions..  -> creer une interface debug ++
+
+vitesse déplacement
 
 Mettre brdf / différents jeux de lumière en option modifiables
 
-répartition des fonctions inputs() dans les différents fichiers concernés ?
-
-affichage des infos des commandes dans la console mieux (à l'init)
+Gestion des Inputs par classes ?
 
 test performance en variant size chunk/max height
-
-faire une classe heritant de mesh qui gère la position/collision/gravité (pour les objets animés)
-
-faire une liste (ou classe) qui regroupe tous les objets actifs pour les collisions (pas juste la carte)
-On passe cette liste en paramètre plutôt que la Map
-
-gravité, collision(vecteur normal) ++
 
 Vérifier les publics/protected : faires des get/sets mieux
 
@@ -40,7 +33,15 @@ RAPPORT
 Améliorations :
 ---------------------------------------
 
-Créer une vrai gravité (vecteur de force, poids...)
+Améliorer la physique (déplacements, collision et gravité) :
+
+	faire une classe heritant de mesh qui gère la position/collision/gravité (pour un objet donné)
+
+	faire une liste (ou classe) qui regroupe tous les objets actifs (et la caméra et le monde) pour les collisions
+	On passe cette liste en paramètre plutôt que la Map
+
+	Créer une vrai gravité (vecteur de force, poids...)
+
 
 Action USER (creuser, construire)
 
@@ -54,7 +55,6 @@ Animation particule (pluie,neige,brouillard... )
 
 Reflet, animation de l'eau
 
-Améliorer la physique (déplacements, collision et gravité)
 
 Ajouter des objets animés (avions, oiseau...) -> utilisation courbes de Bezier pour les déplacements
 

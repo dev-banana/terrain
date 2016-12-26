@@ -32,6 +32,24 @@ LIBS
 	opengl
 	SDL
 
+
+______________________
+
+
+UTILISATION
+------
+
+
+Les comportements et options du Gameplay par défauts sont définis dans le fichier config.hpp.
+Ces options sont pour la plupart modifiables en cours de jeu :
+
+	Echap ( permet d'ouvrir le menu )
+
+Les déplacements se font à la première personne, avec les touches :
+	
+	Z-Q-S-D
+
+
 ______________________
 
 
