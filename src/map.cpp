@@ -440,9 +440,9 @@ void Map::build_shadow_map( Light& light )
     program_uniform(program_depth, "lmvpMatrix", lmvp) ;
     
 
-    for( unsigned int i = 0 ; i < chunks_visibles.size() ; i++ )
+    for( unsigned int i = 0 ; i < chunks.size() ; i++ )
     {
-        chunks_visibles[i]->draw( ) ;
+        chunks[i].draw( ) ;
     }  
     glBindVertexArray(0) ; 
     glUseProgram(0) ;

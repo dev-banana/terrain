@@ -160,9 +160,12 @@ int Scene::draw( )
     animation.animate( map, horloge ) ;
 
 
-    sky.draw( camera ) ;
+    if( !key_state('c') )
+    {
+        sky.draw( camera ) ;
+        animation.draw( camera, sky.getSun() ) ;
+    }
     map.draw( camera, sky.getSun() ) ;
-    animation.draw( camera, sky.getSun() ) ;
 
     
     horloge.timerEnd() ;
@@ -201,7 +204,7 @@ void Scene::drawInterface()
             begin_line( widgets_options ) ; label( widgets_options, "|    " ) ; button(widgets_options, "TEXTURE ", b_is_texture) ; label(widgets_options, "                                              |                                                               |" ) ;
             begin_line( widgets_options ) ; label( widgets_options, "|                                                            |         TEXTURES : T      OMBRES : O      JOURNEE : J         |" ) ;
             begin_line( widgets_options ) ; label( widgets_options, "|    " ) ; button(widgets_options, "OMBRES ", b_is_shadows) ; label(widgets_options, "                                               |                                                               |" ) ;
-            begin_line( widgets_options ) ; label( widgets_options, "|                                                            |                                                               |" ) ;
+            begin_line( widgets_options ) ; label( widgets_options, "|                                                            |      SHADOW MAP : C                                           |" ) ;
             begin_line( widgets_options ) ; label( widgets_options, "|                                                            |                                                               |" ) ;
             begin_line( widgets_options ) ; label( widgets_options, "'------------------------------------------------------------+---------------------------------------------------------------'" ) ;
         }

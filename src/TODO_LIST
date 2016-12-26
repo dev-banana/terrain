@@ -43,6 +43,8 @@ Améliorer la physique (déplacements, collision et gravité) :
 	Créer une vrai gravité (vecteur de force, poids...)
 
 
+Faire une minimap pour se positionner dans un coin en bas (a partir de la heightmap)
+
 Action USER (creuser, construire)
 
 probleme texture aux poles
