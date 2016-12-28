@@ -14,6 +14,7 @@ Rendu :
 
 
 chargement (initialisation) des chunks au fur et a mesure (en fction de la position caméra et pas tout au début)
+-> a accelerer !!  ( threads ? )
 
 ajouter une classe région au dessus de chunks (même principe, région = 64*64 chunk par exple)
 
@@ -72,6 +73,8 @@ Améliorer les jeux de lumières sur les matériaux
 génération terrain procédurale 
 (ou autre qu'avec une heightmap)
 
+utlisation d'une lib GUI pour faire une interface stylée
+
 
 ---------------------------------------
 ---------------------------------------
@@ -92,5 +95,3 @@ par contre probleme aux poles
 Caméra : Déplacement possible en laissant une marge dans l'angle devant
 
 Pas bien : les petits points brillant sur les cubes (interstices ?)
-
-utilisation de la librairie GUI : (link git)

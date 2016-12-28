@@ -1,5 +1,5 @@
 solution "gKit2light"
-	configurations { "debug", "release" }
+	configurations { "release", "debug" }
 
 	platforms { "x64", "x32" }
 	

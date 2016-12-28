@@ -11,7 +11,7 @@
 //------------------------------
 //------------------------------
 
-#define GODMOD false
+#define GODMOD true
 #define SHOW_DEBUG false
 
 #define GRAVITY_VALUE 9.81
@@ -28,13 +28,15 @@
 
 #define CHUNK_SIZE 64
 #define MAX_HEIGHT 40
-#define LOAD_WIDTH 50
-#define LOAD_HEIGHT 50
+#define LOAD_WIDTH 512
+#define LOAD_HEIGHT 512
 
 #define CAMERA_POS ((Point)Point(0, 10, 0))
+#define CAMERA_SPEED 3 //0.5 
+
 
 #define TEXTURE true
-#define PATH_HEIGHTMAP ((char *)"data/terrain/hp.jpg")
+#define PATH_HEIGHTMAP ((char *)"data/terrain/hp.jpg") //islande.jpg
 #define PATH_TEXTURE ((char *)"data/terrain/hp_texture.png")
 
 #define PATH_MAP_SHADER ((char *)"src/shaders/map.glsl")

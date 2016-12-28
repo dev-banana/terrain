@@ -133,7 +133,8 @@ void Animation::animate( Map& map, Timer timer)
 
     bool collide = false ;
     int i_chunk = map.get_ichunk( newP ) ;
-    if( i_chunk >= 0 ){
+    if( i_chunk >= 0 )
+    {
         collide = map.get_chunk( i_chunk )->check_collision( newP, sizePanda ) ;
     }
     if( !collide )
@@ -142,7 +143,6 @@ void Animation::animate( Map& map, Timer timer)
         pos_panda.y = newP.y ;
         pos_panda.z = newP.z ;
     }
-
 
     collide = false ;
 

@@ -31,7 +31,7 @@ Camera_FPS::Camera_FPS()
     fov = 45.0f ;
 
     size_cam = vec3( 0.5, 1.5, 0.5 ) ;
-    speed = 0.5f ;
+    speed = CAMERA_SPEED ;
 
     lookat( Point( 0, 0, 0 ) ) ;
 }

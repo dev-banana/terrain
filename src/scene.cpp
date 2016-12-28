@@ -61,6 +61,7 @@ int Scene::init()
     //observer
     camera.position( CAMERA_POS ) ;
     camera.set_zmax( map.getSizeMax()*6 ) ;
+    map.update_chunks( camera ) ;
 
 
     //options gameplay
@@ -145,12 +146,12 @@ void Scene::quit()
 */
 int Scene::draw( )
 {
+    update_gameplay() ;
+    compute_input() ;
 
     horloge.timerBegin() ;
 
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) ;
-
-    compute_input() ;
 
     if( !is_godmod )
     {
@@ -158,17 +159,15 @@ int Scene::draw( )
         {
             camera.gravite( map, GRAVITY_VALUE/15 ) ;
         }
-        camera.set_collision( is_collision ) ;
     }
     
     sky.animate( horloge ) ;
-    animation.animate( map, horloge ) ;
+    animation.animate( map, horloge ) ; //BUG ( surement mauvais index chunk car pas encore chargé )
 
-
-    if( !key_state('c') )
+    if( !key_state('c') ) //si on n'est pas en train d'afficher la shadowmap
     {
         sky.draw( camera ) ;
-        // animation.draw( camera, sky.getSun() ) ;
+        animation.draw( camera, sky.getSun() ) ;
     }
     map.draw( camera, sky.getSun() ) ;
 
@@ -232,47 +231,6 @@ void Scene::drawInterface()
         begin_line( widgets_infos ) ; label( widgets_infos, "   '-----------'" ) ;
     end( widgets_infos ) ;
     drawWidgets( widgets_infos, window_width(), window_height() ) ;
-
-
-    is_godmod = b_is_godmod ;
-    is_gravity = b_is_gravity ;
-    is_collision = b_is_collision ;
-    sky.change_weather( b_is_meteo ) ;
-    map.use_texture( b_is_texture ) ;
-    map.use_shadow( b_is_shadows ) ;
-
-    if( b_weatherM ){
-        sky.weather( sky.weather()-0.05 ) ;
-        b_weatherM = 0 ;
-    }
-    if( b_weatherP ){
-        sky.weather( sky.weather()+0.05 ) ;
-        b_weatherP = 0 ;
-    }
-    if( b_speedM ){
-        horloge.speed /= 2 ;
-        if( horloge.speed < 1 )
-            horloge.speed = 1 ;
-        b_speedM = 0 ;
-    }
-    if( b_speedP ){
-        horloge.speed *= 2 ;
-        if( horloge.speed > 16000 )
-            horloge.speed = 16000 ;
-        b_speedP = 0 ;
-    }
-    if( b_camSpeedM ){
-        b_camSpeedM = 0 ;
-        camera.set_speed( camera.get_speed() - 0.05 ) ;
-        if( camera.get_speed() < 0.05 )
-            camera.set_speed( 0.05 ) ;
-    }
-    if( b_camSpeedP ){
-        b_camSpeedP = 0 ;
-        camera.set_speed( camera.get_speed() + 0.05 ) ;
-        if( camera.get_speed() > 5 )
-            camera.set_speed( 5 ) ;
-    }
 }
 
 
@@ -296,13 +254,25 @@ void Scene::compute_input()
         quit() ;
     else 
     if( key_state('z') )        // Z-Q-S-D  -> Déplacement
-        camera.avance( map ) ; 
+    {
+        camera.avance( map ) ;
+        map.load_new_region( camera.position() ) ;
+    }
     if( key_state('s') )
-        camera.recule( map ) ; 
+    {
+        camera.recule( map ) ;
+        map.load_new_region( camera.position() ) ;
+    }
     if( key_state('q') )
-        camera.gauche( map ) ; 
+    {
+        camera.gauche( map ) ;
+        map.load_new_region( camera.position() ) ;
+    }
     if( key_state('d') )
-        camera.droite( map ) ; 
+    {
+        camera.droite( map ) ;
+        map.load_new_region( camera.position() ) ;
+    }
     if( key_state(' ') )        // SPACE  -> Déplacement
         camera.jump( map, 1 ) ;
     if( ks[SDL_SCANCODE_KP_PLUS] ) // + -> ZOOM IN
@@ -376,4 +346,55 @@ void Scene::compute_input()
     camera.rotate( mx, my );
 
     map.update_chunks( camera ) ;
+}
+
+
+/**
+* \brief Met à jour les options de jeu
+*
+*   change les valeurs des options de gameplay selon les actions effectuée dans la console de debug
+*
+*/
+void Scene::update_gameplay()
+{
+    is_godmod = b_is_godmod ;
+    is_gravity = b_is_gravity ;
+    is_collision = b_is_collision ;
+    camera.set_collision( !is_godmod && is_collision ) ;
+    sky.change_weather( b_is_meteo ) ;
+    map.use_texture( b_is_texture ) ;
+    map.use_shadow( b_is_shadows ) ;
+
+    if( b_weatherM ){
+        sky.weather( sky.weather()-0.05 ) ;
+        b_weatherM = 0 ;
+    }
+    if( b_weatherP ){
+        sky.weather( sky.weather()+0.05 ) ;
+        b_weatherP = 0 ;
+    }
+    if( b_speedM ){
+        horloge.speed /= 2 ;
+        if( horloge.speed < 1 )
+            horloge.speed = 1 ;
+        b_speedM = 0 ;
+    }
+    if( b_speedP ){
+        horloge.speed *= 2 ;
+        if( horloge.speed > 16000 )
+            horloge.speed = 16000 ;
+        b_speedP = 0 ;
+    }
+    if( b_camSpeedM ){
+        b_camSpeedM = 0 ;
+        camera.set_speed( camera.get_speed() - 0.05 ) ;
+        if( camera.get_speed() < 0.05 )
+            camera.set_speed( 0.05 ) ;
+    }
+    if( b_camSpeedP ){
+        b_camSpeedP = 0 ;
+        camera.set_speed( camera.get_speed() + 0.05 ) ;
+        if( camera.get_speed() > 5 )
+            camera.set_speed( 5 ) ;
+    }
 }

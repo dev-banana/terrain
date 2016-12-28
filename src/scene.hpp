@@ -77,7 +77,9 @@ class Scene
         int b_camSpeedP ;    //!< Bouton pour augmenter la vitesse de déplacement
 
 
+        void compute_input() ;
         void drawInterface() ;
+        void update_gameplay() ;
 
 
 	public:
@@ -93,8 +95,6 @@ class Scene
         int init() ;
         int draw() ;
         void quit() ;
-
-        void compute_input() ;
 } ;
 
 #endif //SCENE_HPP

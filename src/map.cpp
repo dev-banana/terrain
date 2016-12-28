@@ -32,6 +32,16 @@ void Map::init()
 
 
     /*
+        SHADER init
+    */
+    program = read_program( PATH_MAP_SHADER ) ;
+    program_print_errors(program) ;
+    program_depth = read_program( PATH_SHADOWS_SHADER ) ;
+    program_print_errors(program_depth) ;
+
+
+
+    /*
         HEIGHT MAP
     */
     heightmap = read_image( PATH_HEIGHTMAP );
@@ -49,43 +59,14 @@ void Map::init()
     /*
         INITIALISATION DES CHUNKS
     */
-    std::cout << "chunks : création des maillage ... " << std::endl ;
+    std::cout << "chunks : création des maillage et des VAOs... " << std::endl ;
 
     posDepart = Point( (int)-map_width/2, 0 , (int)-map_height/2 ) ;
-    chunks.resize( (map_width/CHUNK_SIZE + 1)*(map_height/CHUNK_SIZE + 1)) ;
+    chunks.resize( (map_width/CHUNK_SIZE )*(map_height/CHUNK_SIZE ) ) ;
 
     // on ne charge que la région autour de la caméra 
+    load_new_region( CAMERA_POS ) ;
 
-    int load_xmin = ( CAMERA_POS.x - (int)std::min( LOAD_WIDTH, (int)map_width )/2 ) - posDepart.x ;
-    int load_xmax = ( CAMERA_POS.x + (int)std::min( LOAD_WIDTH, (int)map_width )/2 ) - posDepart.x ;
-    int load_ymin = ( CAMERA_POS.z - (int)std::min( LOAD_HEIGHT, (int)map_height )/2 ) - posDepart.z ;
-    int load_ymax = ( CAMERA_POS.z + (int)std::min( LOAD_HEIGHT, (int)map_height )/2 ) - posDepart.z ;
-
-    // load_heightmap( load_xmin, load_xmax, load_ymin, load_ymax ) ;
-    load_heightmap( 0, map_width, 0, map_height ) ;
-    
-
-
-    /*
-        SHADER init
-    */
-    program = read_program( PATH_MAP_SHADER ) ;
-    program_print_errors(program) ;
-    program_depth = read_program( PATH_SHADOWS_SHADER ) ;
-    program_print_errors(program_depth) ;
-
-
-    /*
-        CREATION DES BOUNDING BOX et des VAOS pour les chunks
-    */
-    std::cout << "chunks : création des BoundingBox et des VAOs ... " << std::endl ;
-    for ( unsigned int i = 0; i < chunks.size(); i++)
-    {   
-        chunks[i].init( program ) ;
-    }
-    // nettoyage
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 
     /*
@@ -131,12 +112,72 @@ void Map::init()
 
 
 /**
-* \brief Initialisation des chunks a partir de la heightmap
+* \brief Calcul une région à charger
+* \param[in] center : centre de la région que l'on va charger (par exemple, on charge la région autour de la caméra)
+*
+*   A partir d'une perimetre autour du point, on recalcul la région qui inclu tous les points des chunks de la région
+*
+*/
+void Map::load_new_region( const Point center )
+{
+    if( all_load )
+        return ;
+
+    int region_xmin = ( center.x - (int)std::min( LOAD_WIDTH, (int)map_width )/2 ) ;
+    int region_xmax = ( center.x + (int)std::min( LOAD_WIDTH, (int)map_width )/2 )-1 ;
+    int region_ymin = ( center.z - (int)std::min( LOAD_HEIGHT, (int)map_height )/2 ) ;
+    int region_ymax = ( center.z + (int)std::min( LOAD_HEIGHT, (int)map_height )/2 )-1 ;
+
+
+    int idChunkMin = get_ichunk( Point(region_xmin, 0, region_ymin) ) ;
+    int idChunkMax = get_ichunk( Point(region_xmax, 0, region_ymax) ) ;
+
+
+    unsigned int load_xmin, load_ymin, load_xmax, load_ymax ;
+
+    load_xmin = ( idChunkMin % ( (int)map_width/CHUNK_SIZE ) ) * CHUNK_SIZE ;
+    load_ymin = ( idChunkMin / ( (int)map_width/CHUNK_SIZE ) ) * CHUNK_SIZE ;
+
+    load_xmax = ( ( idChunkMax % ( (int)map_width/CHUNK_SIZE ) ) * CHUNK_SIZE ) + CHUNK_SIZE + 1 ;
+    load_ymax = ( ( idChunkMax / ( (int)map_width/CHUNK_SIZE ) ) * CHUNK_SIZE ) + CHUNK_SIZE + 1 ;
+
+    if( load_xmax > map_width )
+        load_xmax = map_width ;
+
+    if( load_ymax > map_height )
+        load_ymax = map_height ;
+    
+
+    load_heightmap( load_xmin, load_xmax, load_ymin, load_ymax ) ;
+
+
+    /*
+        CREATION DES BOUNDING BOX et des VAOS pour les chunks
+    */
+    all_load = true ;
+    for ( unsigned int i = 0; i < chunks.size(); i++)
+    {   
+        if( !chunks[i].INIT && chunks[i].vertex_count() > 0 )
+            chunks[i].init( program ) ;
+        else if( !chunks[i].INIT )
+            all_load = false ;
+    }
+    // nettoyage
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+/**
+* \brief Chargement des vertices à partir de la heightmap
+* \param[in] load_xmin : l'indice X minimum pour charger la carte
+* \param[in] load_xmax : l'indice X maximum pour charger la carte
+* \param[in] load_ymin : l'indice Y minimum pour charger la carte
+* \param[in] load_ymax : l'indice Y maximum pour charger la carte
 *
 *   initialisation d'une region entre load_min et load_max
 *
 */
-void Map::load_heightmap( int load_xmin, int load_xmax, int load_ymin, int load_ymax )
+void Map::load_heightmap( unsigned int load_xmin, unsigned int load_xmax, unsigned int load_ymin, unsigned int load_ymax )
 {
 
     std::vector<vec3> cube_v = mesh_cube.positions() ;
@@ -144,9 +185,9 @@ void Map::load_heightmap( int load_xmin, int load_xmax, int load_ymin, int load_
 
     float heightValue, x_pos, y_pos ;
     //on parcourt la heightmap
-    for( int i = load_xmin; i < load_xmax; i++ )
+    for( unsigned int i = load_xmin ; ( i < load_xmax || i < map_width ) ; i++ )
     {
-        for( int j = load_ymin; j < load_ymax; j++ )
+        for( unsigned int j = load_ymin ; ( j < load_ymax || j < map_height ) ; j++ )
         {
             float x = i/CHUNK_SIZE ;
             float y = j/CHUNK_SIZE ;
@@ -155,55 +196,69 @@ void Map::load_heightmap( int load_xmin, int load_xmax, int load_ymin, int load_
             heightValue = floor( (float)heightmap(i,j).r * MAX_HEIGHT ) ;
             x_pos = posDepart.x + i ;
             y_pos = posDepart.z + j ;
-           
-            unsigned int iv ;
-            vec3 ivv = vec3(x_pos,heightValue, y_pos) ;
-            for( int k = 0 ; k < mesh_cube.vertex_count() ; k++ )
-            {
-                chunks[index_chunk].normal( vec3(cube_n[k].x, cube_n[k].y, cube_n[k].z) ) ;
-                iv = chunks[index_chunk].vertex( vec3(cube_v[k].x+x_pos,cube_v[k].y+heightValue, cube_v[k].z+y_pos) ) ;
 
-                chunks[index_chunk].cubeToVertex[ivv].push_back(iv) ;
-            }
-
-            //on comble les trous entre les hauteurs différentes
-            for( int k = i-1 ; k <= i+1 ; k++ )
+            if( !chunks[index_chunk].INIT )
             {
-                for ( int l = j-1 ; l <= j+1; l++ )
+                //on ajoute un nouveau cube (et tout ses vertex) à une nouvelle position 
+                unsigned int iv ;
+                vec3 ivv = vec3(x_pos,heightValue, y_pos) ;
+                for( int k = 0 ; k < mesh_cube.vertex_count() ; k++ )
                 {
-                    if( k != l && k != -l && k > 0 && l > 0 && k < (int)map_width && l < (int)map_height )
+                    chunks[index_chunk].normal( vec3(cube_n[k].x, cube_n[k].y, cube_n[k].z) ) ;
+                    iv = chunks[index_chunk].vertex( vec3(cube_v[k].x+x_pos,cube_v[k].y+heightValue, cube_v[k].z+y_pos) ) ;
+
+                    chunks[index_chunk].cubeToVertex[ivv].push_back(iv) ;
+                }
+
+                //on comble les trous entre les hauteurs différentes
+                for( unsigned int k = i-1 ; k <= i+1 ; k++ )
+                {
+                    for ( unsigned int l = j-1 ; l <= j+1; l++ )
                     {
-                        int heightVoisin = posDepart.y + floor((float)heightmap(k,l).r * MAX_HEIGHT) ;
-                        int diff = heightValue - heightVoisin ;
-
-                        if( diff > 1 )
+                        if( k != l && k != -l && k > 0 && l > 0 && k < map_width && l < map_height )
                         {
-                            for( int nc = 1 ; nc < diff ; nc++ )
-                            {
-                                int newHeight = heightValue-nc ;
-                                
-                                for( int k = 0 ; k < mesh_cube.vertex_count() ; k++ )
-                                {
-                                    chunks[index_chunk].normal( vec3(cube_n[k].x, cube_n[k].y, cube_n[k].z) ) ;
-                                    iv = chunks[index_chunk].vertex( vec3(cube_v[k].x+x_pos,cube_v[k].y+newHeight, cube_v[k].z+y_pos) ) ;
+                            int heightVoisin = posDepart.y + floor((float)heightmap(k,l).r * MAX_HEIGHT) ;
+                            int diff = heightValue - heightVoisin ;
 
-                                    ivv = vec3(x_pos,newHeight, y_pos) ;
-                                    chunks[index_chunk].cubeToVertex[vec3(x_pos,newHeight, y_pos)].push_back(iv) ;
+                            if( diff > 1 )
+                            {
+                                for( int nc = 1 ; nc < diff ; nc++ )
+                                {
+                                    int newHeight = heightValue-nc ;
+                                    
+                                    for( int k = 0 ; k < mesh_cube.vertex_count() ; k++ )
+                                    {
+                                        chunks[index_chunk].normal( vec3(cube_n[k].x, cube_n[k].y, cube_n[k].z) ) ;
+                                        iv = chunks[index_chunk].vertex( vec3(cube_v[k].x+x_pos,cube_v[k].y+newHeight, cube_v[k].z+y_pos) ) ;
+
+                                        ivv = vec3(x_pos,newHeight, y_pos) ;
+                                        chunks[index_chunk].cubeToVertex[vec3(x_pos,newHeight, y_pos)].push_back(iv) ;
+                                    }
                                 }
                             }
                         }
                     }
-                }
+                }   
             }
         }
     }
 }
 
 
+/**
+* \brief Initialisation des Chunks
+* \param[in] program : la référence du shader principal
+*
+*   Initialise les VAOs des chunks et leur bounding box
+*
+*/
 void Chunk::init( GLuint program )
 {
+    INIT = true ;
+
     Point pmin, pmax ;
-    bounds(pmin, pmax);
+    bounds(pmin, pmax) ;
+
     boundingbox.vertex( Point( pmin ) ) ;
     boundingbox.vertex( Point( pmax ) ) ;
     boundingbox.vertex( Point( pmax.x, pmin.y, pmin.z ) ) ;
@@ -256,8 +311,6 @@ void Chunk::init( GLuint program )
     glBindBuffer(GL_ARRAY_BUFFER, n_buffer);
     glVertexAttribPointer(attribute, 3, GL_FLOAT, GL_FALSE, /* stride */ 0, /* offset */ 0);  // in vec3 normal;
     glEnableVertexAttribArray(attribute);
-
-    INIT = true ;
 }
 
 /*==============================
@@ -303,7 +356,7 @@ void Map::update_chunks( Camera_FPS& camera )
     chunks_visibles.clear() ;
     for( unsigned int i = 0 ; i < chunks.size() ; i++)
     {
-        if( chunks[i].is_visible( mvp ) )
+        if( chunks[i].INIT && chunks[i].is_visible( mvp ) )
             chunks_visibles.push_back( &chunks[i] ) ;
     }
 }
@@ -350,12 +403,17 @@ bool Chunk::is_visible( const Transform& mvp )
 */
 bool Chunk::check_collision( const Point pos, vec3 box )
 {
+    if( !INIT )
+        return false ;
+
     for(int i = 0; i < v_count; i++)
     {
         if( m_positions[i].x > pos.x-box.x && m_positions[i].x < pos.x+box.x
         && m_positions[i].y > pos.y-box.y && m_positions[i].y < pos.y+box.y
         && m_positions[i].z > pos.z-box.z && m_positions[i].z < pos.z+box.z )
+        {
             return true ;
+        }
     }
     return false ;
 }
@@ -471,7 +529,7 @@ void Map::build_shadow_map( Light& light )
 
     for( unsigned int i = 0 ; i < chunks.size() ; i++ )
     {
-        if( chunks[i].is_visible( lmvp ) )
+        if( chunks[i].INIT && chunks[i].is_visible( lmvp ) )
             chunks[i].draw( ) ;
     }  
     glBindVertexArray(0) ; 

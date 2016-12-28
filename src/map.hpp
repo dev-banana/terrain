@@ -52,7 +52,6 @@ class Chunk : public Mesh
         std::map<vec3, std::vector<int>> cubeToVertex ; //!< Liste les vertices reliée à un cube (à une position)
 
 
-
         /**
         * \brief Constructeur de la classe Chunk
         */
@@ -109,6 +108,7 @@ class Map
         ==============================*/ 
         std::vector<Chunk> chunks ; //!< La liste des chunks
         std::vector<Chunk*> chunks_visibles ;   //!< Liste des chunks visibles
+        bool all_load = false ;
 
         
         /*==============================
@@ -143,7 +143,7 @@ class Map
 
         void build_shadow_map( Light& ) ;
         void draw_shadow_map() ;
-        void load_heightmap( int, int, int, int ) ;
+        void load_heightmap( unsigned int, unsigned int, unsigned int, unsigned int ) ;
 
 
     public:
@@ -162,6 +162,7 @@ class Map
         void release() ;
         void draw( Camera_FPS&, Light& ) ;
 
+        void load_new_region( const Point ) ;
         void update_chunks( Camera_FPS& ) ;
 
         void build( Camera_FPS& ) ;
