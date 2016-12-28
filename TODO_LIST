@@ -9,9 +9,13 @@ Rendu :
 /// max day speed = 16000
 /// temps moins saccadé
 /// Améliorer l'interaction clavier/actions..  -> creer une interface debug ++
+/// vitesse déplacement
 
 
-vitesse déplacement
+
+chargement (initialisation) des chunks au fur et a mesure (en fction de la position caméra et pas tout au début)
+
+ajouter une classe région au dessus de chunks (même principe, région = 64*64 chunk par exple)
 
 Mettre brdf / différents jeux de lumière en option modifiables
 

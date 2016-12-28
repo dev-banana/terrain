@@ -361,3 +361,21 @@ Point Camera_FPS::getForward( int distance )
     newP.z = pos.z + (speed * vecFront.z)*distance ;
     return newP ;
 }
+
+/**
+* \brief Retourne la vitesse de déplacement de la caméra
+* \return Speed : la vitesse
+*/
+float Camera_FPS::get_speed()
+{
+    return speed ;
+}
+
+/**
+* \brief Définie la vitesse de déplacement de la caméra
+* \param[in] _speed : la nouvelle vitesse
+*/
+void Camera_FPS::set_speed( const float _speed )
+{
+    speed = _speed ;
+}

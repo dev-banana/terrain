@@ -33,6 +33,8 @@ class Chunk : public Mesh
 {
     public:
 
+        bool INIT = false ;    //!< true si initialisation = OK
+
         /*==============================
                     GLSL
         ==============================*/
@@ -57,10 +59,20 @@ class Chunk : public Mesh
         Chunk(){}
     	~Chunk() ;
 
+        void init( GLuint ) ;
         void draw() ;
         bool is_visible( const Transform& ) ;
         bool check_collision( const Point, vec3 ) ;
         bool remove_vertex( const Point ) ;
+
+        /**
+        * \brief Surcharge de l'opérateur de test
+        * \return TRUE si le chunk a bien été initialisé
+        */
+        operator bool() const 
+        { 
+            return INIT ; 
+        }
 } ;
 
 
@@ -131,6 +143,7 @@ class Map
 
         void build_shadow_map( Light& ) ;
         void draw_shadow_map() ;
+        void load_heightmap( int, int, int, int ) ;
 
 
     public:

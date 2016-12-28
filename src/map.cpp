@@ -44,24 +44,109 @@ void Map::init()
         OBJET
     */
     mesh_cube = read_mesh( CUBE_OBJ );
-    std::vector<vec3> cube_v = mesh_cube.positions() ;
-    std::vector<vec3> cube_n = mesh_cube.normals() ;
-
 
 
     /*
-        REMPLISSAGE CHUNK
+        INITIALISATION DES CHUNKS
     */
-    std::cout << "création des maillage ... " << std::endl ;
+    std::cout << "chunks : création des maillage ... " << std::endl ;
 
     posDepart = Point( (int)-map_width/2, 0 , (int)-map_height/2 ) ;
     chunks.resize( (map_width/CHUNK_SIZE + 1)*(map_height/CHUNK_SIZE + 1)) ;
 
+    // on ne charge que la région autour de la caméra 
+
+    int load_xmin = ( CAMERA_POS.x - (int)std::min( LOAD_WIDTH, (int)map_width )/2 ) - posDepart.x ;
+    int load_xmax = ( CAMERA_POS.x + (int)std::min( LOAD_WIDTH, (int)map_width )/2 ) - posDepart.x ;
+    int load_ymin = ( CAMERA_POS.z - (int)std::min( LOAD_HEIGHT, (int)map_height )/2 ) - posDepart.z ;
+    int load_ymax = ( CAMERA_POS.z + (int)std::min( LOAD_HEIGHT, (int)map_height )/2 ) - posDepart.z ;
+
+    // load_heightmap( load_xmin, load_xmax, load_ymin, load_ymax ) ;
+    load_heightmap( 0, map_width, 0, map_height ) ;
+    
+
+
+    /*
+        SHADER init
+    */
+    program = read_program( PATH_MAP_SHADER ) ;
+    program_print_errors(program) ;
+    program_depth = read_program( PATH_SHADOWS_SHADER ) ;
+    program_print_errors(program_depth) ;
+
+
+    /*
+        CREATION DES BOUNDING BOX et des VAOS pour les chunks
+    */
+    std::cout << "chunks : création des BoundingBox et des VAOs ... " << std::endl ;
+    for ( unsigned int i = 0; i < chunks.size(); i++)
+    {   
+        chunks[i].init( program ) ;
+    }
+    // nettoyage
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+    /*
+        SHADOW MAP
+    */
+    framebuffer_width = FRAMEBUFFER_WIDTH ;
+    framebuffer_height = FRAMEBUFFER_HEIGHT ;
+    
+    // etape 1 : creer une texture couleur...
+    glGenTextures(1, &color_buffer);
+    glBindTexture(GL_TEXTURE_2D, color_buffer);      
+    glTexImage2D(GL_TEXTURE_2D, 0,
+        GL_RGBA, framebuffer_width, framebuffer_height, 0,
+        GL_RGBA, GL_FLOAT, nullptr); 
+
+    // creer aussi une texture depth, sinon pas de zbuffer...
+    glGenTextures(1, &depth_buffer);
+    glBindTexture(GL_TEXTURE_2D, depth_buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0,
+        GL_DEPTH_COMPONENT, framebuffer_width, framebuffer_height, 0,
+        GL_DEPTH_COMPONENT, GL_FLOAT, nullptr); 
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // etape 2 : creer et configurer un framebuffer object
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture(GL_DRAW_FRAMEBUFFER,  /* attachment */ GL_COLOR_ATTACHMENT0,
+     /* texture */ color_buffer, /* mipmap level */ 0);
+    glFramebufferTexture(GL_DRAW_FRAMEBUFFER,  /* attachment */ GL_DEPTH_ATTACHMENT,
+     /* texture */ depth_buffer, /* mipmap level */ 0);
+    
+    // le fragment shader ne declare qu'une seule sortie, indice 0
+    GLenum buffers[]= { GL_COLOR_ATTACHMENT0 };
+    glDrawBuffers(1, buffers);
+    
+    // nettoyage
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);  
+}
+
+
+/**
+* \brief Initialisation des chunks a partir de la heightmap
+*
+*   initialisation d'une region entre load_min et load_max
+*
+*/
+void Map::load_heightmap( int load_xmin, int load_xmax, int load_ymin, int load_ymax )
+{
+
+    std::vector<vec3> cube_v = mesh_cube.positions() ;
+    std::vector<vec3> cube_n = mesh_cube.normals() ;
+
     float heightValue, x_pos, y_pos ;
     //on parcourt la heightmap
-    for( int i = 0; i < (int)map_width; i++)
+    for( int i = load_xmin; i < load_xmax; i++ )
     {
-        for( int j = 0; j < (int)map_height; j++)
+        for( int j = load_ymin; j < load_ymax; j++ )
         {
             float x = i/CHUNK_SIZE ;
             float y = j/CHUNK_SIZE ;
@@ -112,124 +197,68 @@ void Map::init()
             }
         }
     }
-
-
-    /*
-        SHADER init
-    */
-    program = read_program( PATH_MAP_SHADER ) ;
-    program_print_errors(program) ;
-    program_depth = read_program( PATH_SHADOWS_SHADER ) ;
-    program_print_errors(program_depth) ;
-
-    /*
-        CREATION DES BOUNDING BOX pour les chunks et des VAOS
-    */
-    std::cout << "création des BoundingBox et des VAOs ... " << std::endl ;
-    for ( unsigned int i = 0; i < chunks.size(); i++)
-    {    
-        Point pmin, pmax ;
-        chunks[i].bounds(pmin, pmax);
-        chunks[i].boundingbox.vertex( Point( pmin ) ) ;
-        chunks[i].boundingbox.vertex( Point( pmax ) ) ;
-        chunks[i].boundingbox.vertex( Point( pmax.x, pmin.y, pmin.z ) ) ;
-        chunks[i].boundingbox.vertex( Point( pmax.x, pmax.y, pmin.z ) ) ;
-        chunks[i].boundingbox.vertex( Point( pmin.x, pmax.y, pmin.z ) ) ;
-        chunks[i].boundingbox.vertex( Point( pmin.x, pmax.y, pmax.z ) ) ;
-        chunks[i].boundingbox.vertex( Point( pmin.x, pmin.y, pmax.z ) ) ;
-        chunks[i].boundingbox.vertex( Point( pmax.x, pmin.y, pmax.z ) ) ;
-
-
-        chunks[i].v_count = chunks[i].vertex_count() ;
-
-
-        glGenBuffers(1, &chunks[i].v_buffer);
-        glBindBuffer(GL_ARRAY_BUFFER, chunks[i].v_buffer);
-
-        // dimensionne le buffer actif sur array_buffer, l'alloue et l'initialise avec les positions des sommets de l'objet
-        glBufferData(GL_ARRAY_BUFFER,
-            /* length */ chunks[i].vertex_buffer_size(),
-            /* data */ chunks[i].vertex_buffer(),
-            /* usage */ GL_DYNAMIC_DRAW);
-        // GL_STATIC_DRAW decrit l'utilisation du contenu du buffer. dans ce cas, utilisation par draw, sans modifications
-
-        // on recommence avec les normales
-        glGenBuffers(1, &chunks[i].n_buffer);
-        glBindBuffer(GL_ARRAY_BUFFER, chunks[i].n_buffer);
-        glBufferData(GL_ARRAY_BUFFER, chunks[i].normal_buffer_size(), chunks[i].normal_buffer(), GL_STATIC_DRAW);
-
-        // creation d'un vertex array object
-        glGenVertexArrays(1, &chunks[i].vao);
-        glBindVertexArray(chunks[i].vao);
-
-        // recuperer l'identifiant de l'attribut : cf in vec3 position; dans le vertex shader
-        GLint attribute= glGetAttribLocation(program, "position");
-        if(attribute < 0)
-            INIT = false ;
-
-        // re-selectionne vertex buffer pour configurer les positions
-        glBindBuffer(GL_ARRAY_BUFFER, chunks[i].v_buffer);
-        // format et organisation des donnees dans le vertex buffer selectionne sur array_buffer,
-        glVertexAttribPointer(attribute, 3, GL_FLOAT, GL_FALSE, /* stride */ 0, /* offset */ 0);
-        glEnableVertexAttribArray(attribute);
-
-        // on recommence pour les normales
-        attribute= glGetAttribLocation(program, "normal");
-        if(attribute < 0)
-            INIT = false ;
-
-        // re-selectionne normal_buffer pour configurer les normales
-        glBindBuffer(GL_ARRAY_BUFFER, chunks[i].n_buffer);
-        glVertexAttribPointer(attribute, 3, GL_FLOAT, GL_FALSE, /* stride */ 0, /* offset */ 0);  // in vec3 normal;
-        glEnableVertexAttribArray(attribute);
-    }
-    // nettoyage
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-
-    /*
-        SHADOW MAP
-    */
-    framebuffer_width = FRAMEBUFFER_WIDTH ;
-    framebuffer_height = FRAMEBUFFER_HEIGHT ;
-    
-    // etape 1 : creer une texture couleur...
-    glGenTextures(1, &color_buffer);
-    glBindTexture(GL_TEXTURE_2D, color_buffer);      
-    glTexImage2D(GL_TEXTURE_2D, 0,
-        GL_RGBA, framebuffer_width, framebuffer_height, 0,
-        GL_RGBA, GL_FLOAT, nullptr); 
-
-    // creer aussi une texture depth, sinon pas de zbuffer...
-    glGenTextures(1, &depth_buffer);
-    glBindTexture(GL_TEXTURE_2D, depth_buffer);
-    glTexImage2D(GL_TEXTURE_2D, 0,
-        GL_DEPTH_COMPONENT, framebuffer_width, framebuffer_height, 0,
-        GL_DEPTH_COMPONENT, GL_FLOAT, nullptr); 
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    // etape 2 : creer et configurer un framebuffer object
-    glGenFramebuffers(1, &framebuffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
-    glFramebufferTexture(GL_DRAW_FRAMEBUFFER,  /* attachment */ GL_COLOR_ATTACHMENT0,
-     /* texture */ color_buffer, /* mipmap level */ 0);
-    glFramebufferTexture(GL_DRAW_FRAMEBUFFER,  /* attachment */ GL_DEPTH_ATTACHMENT,
-     /* texture */ depth_buffer, /* mipmap level */ 0);
-    
-    // le fragment shader ne declare qu'une seule sortie, indice 0
-    GLenum buffers[]= { GL_COLOR_ATTACHMENT0 };
-    glDrawBuffers(1, buffers);
-    
-    // nettoyage
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);  
 }
 
 
+void Chunk::init( GLuint program )
+{
+    Point pmin, pmax ;
+    bounds(pmin, pmax);
+    boundingbox.vertex( Point( pmin ) ) ;
+    boundingbox.vertex( Point( pmax ) ) ;
+    boundingbox.vertex( Point( pmax.x, pmin.y, pmin.z ) ) ;
+    boundingbox.vertex( Point( pmax.x, pmax.y, pmin.z ) ) ;
+    boundingbox.vertex( Point( pmin.x, pmax.y, pmin.z ) ) ;
+    boundingbox.vertex( Point( pmin.x, pmax.y, pmax.z ) ) ;
+    boundingbox.vertex( Point( pmin.x, pmin.y, pmax.z ) ) ;
+    boundingbox.vertex( Point( pmax.x, pmin.y, pmax.z ) ) ;
+
+
+    v_count = vertex_count() ;
+
+
+    glGenBuffers(1, &v_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, v_buffer);
+
+    // dimensionne le buffer actif sur array_buffer, l'alloue et l'initialise avec les positions des sommets de l'objet
+    glBufferData(GL_ARRAY_BUFFER,
+        /* length */ vertex_buffer_size(),
+        /* data */ vertex_buffer(),
+        /* usage */ GL_DYNAMIC_DRAW);
+    // GL_STATIC_DRAW decrit l'utilisation du contenu du buffer. dans ce cas, utilisation par draw, sans modifications
+
+    // on recommence avec les normales
+    glGenBuffers(1, &n_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, n_buffer);
+    glBufferData(GL_ARRAY_BUFFER, normal_buffer_size(), normal_buffer(), GL_STATIC_DRAW);
+
+    // creation d'un vertex array object
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    // recuperer l'identifiant de l'attribut : cf in vec3 position; dans le vertex shader
+    GLint attribute= glGetAttribLocation(program, "position");
+    if(attribute < 0)
+        INIT = false ;
+
+    // re-selectionne vertex buffer pour configurer les positions
+    glBindBuffer(GL_ARRAY_BUFFER, v_buffer);
+    // format et organisation des donnees dans le vertex buffer selectionne sur array_buffer,
+    glVertexAttribPointer(attribute, 3, GL_FLOAT, GL_FALSE, /* stride */ 0, /* offset */ 0);
+    glEnableVertexAttribArray(attribute);
+
+    // on recommence pour les normales
+    attribute= glGetAttribLocation(program, "normal");
+    if(attribute < 0)
+        INIT = false ;
+
+    // re-selectionne normal_buffer pour configurer les normales
+    glBindBuffer(GL_ARRAY_BUFFER, n_buffer);
+    glVertexAttribPointer(attribute, 3, GL_FLOAT, GL_FALSE, /* stride */ 0, /* offset */ 0);  // in vec3 normal;
+    glEnableVertexAttribArray(attribute);
+
+    INIT = true ;
+}
 
 /*==============================
             QUIT
@@ -442,7 +471,8 @@ void Map::build_shadow_map( Light& light )
 
     for( unsigned int i = 0 ; i < chunks.size() ; i++ )
     {
-        chunks[i].draw( ) ;
+        if( chunks[i].is_visible( lmvp ) )
+            chunks[i].draw( ) ;
     }  
     glBindVertexArray(0) ; 
     glUseProgram(0) ;

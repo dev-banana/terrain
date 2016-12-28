@@ -85,6 +85,8 @@ int Scene::init()
     b_weatherP = 0 ;
     b_speedM = 0 ;
     b_speedP = 0 ;
+    b_camSpeedM = 0 ;
+    b_camSpeedP = 0 ;
 
 
     /*
@@ -150,11 +152,14 @@ int Scene::draw( )
 
     compute_input() ;
 
-    if( !is_godmod && is_gravity && SDL_GetTicks() - horloge.timeBefore > 5 )
+    if( !is_godmod )
     {
-        camera.gravite( map, GRAVITY_VALUE/15 ) ;
+        if( is_gravity )
+        {
+            camera.gravite( map, GRAVITY_VALUE/15 ) ;
+        }
+        camera.set_collision( is_collision ) ;
     }
-    camera.set_collision( is_collision && !is_godmod ) ;
     
     sky.animate( horloge ) ;
     animation.animate( map, horloge ) ;
@@ -163,7 +168,7 @@ int Scene::draw( )
     if( !key_state('c') )
     {
         sky.draw( camera ) ;
-        animation.draw( camera, sky.getSun() ) ;
+        // animation.draw( camera, sky.getSun() ) ;
     }
     map.draw( camera, sky.getSun() ) ;
 
@@ -205,7 +210,7 @@ void Scene::drawInterface()
             begin_line( widgets_options ) ; label( widgets_options, "|                                                            |         TEXTURES : T      OMBRES : O      JOURNEE : J         |" ) ;
             begin_line( widgets_options ) ; label( widgets_options, "|    " ) ; button(widgets_options, "OMBRES ", b_is_shadows) ; label(widgets_options, "                                               |                                                               |" ) ;
             begin_line( widgets_options ) ; label( widgets_options, "|                                                            |      SHADOW MAP : C                                           |" ) ;
-            begin_line( widgets_options ) ; label( widgets_options, "|                                                            |                                                               |" ) ;
+            begin_line( widgets_options ) ; label( widgets_options, "|    VITESSE DEPLACEMENTS : %0.2f : ", camera.get_speed() ) ; button(widgets_options, " - ", b_camSpeedM) ; label(widgets_options, "   |  " ) ; button(widgets_options, " + ", b_camSpeedP) ; label(widgets_options, "  )       |                                                               |" ) ;
             begin_line( widgets_options ) ; label( widgets_options, "'------------------------------------------------------------+---------------------------------------------------------------'" ) ;
         }
     end( widgets_options ) ;
@@ -255,6 +260,18 @@ void Scene::drawInterface()
         if( horloge.speed > 16000 )
             horloge.speed = 16000 ;
         b_speedP = 0 ;
+    }
+    if( b_camSpeedM ){
+        b_camSpeedM = 0 ;
+        camera.set_speed( camera.get_speed() - 0.05 ) ;
+        if( camera.get_speed() < 0.05 )
+            camera.set_speed( 0.05 ) ;
+    }
+    if( b_camSpeedP ){
+        b_camSpeedP = 0 ;
+        camera.set_speed( camera.get_speed() + 0.05 ) ;
+        if( camera.get_speed() > 5 )
+            camera.set_speed( 5 ) ;
     }
 }
 

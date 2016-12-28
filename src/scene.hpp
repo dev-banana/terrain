@@ -73,6 +73,8 @@ class Scene
         int b_weatherP ;    //!< Bouton pour améliorer la météo
         int b_speedM ;    //!< Bouton pour baisser la vitese des journées
         int b_speedP ;    //!< Bouton pour augmenter la vitesse des journées
+        int b_camSpeedM ;    //!< Bouton pour baisser la vitese de déplacement
+        int b_camSpeedP ;    //!< Bouton pour augmenter la vitesse de déplacement
 
 
         void drawInterface() ;

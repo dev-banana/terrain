@@ -99,6 +99,8 @@ class Camera_FPS
         void set_zmax( float ) ;
         void set_collision( bool ) ;
         Point getForward( int ) ;
+        float get_speed() ;
+        void set_speed( const float ) ;
 };
 
 #endif

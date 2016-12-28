@@ -11,7 +11,7 @@
 //------------------------------
 //------------------------------
 
-#define GODMOD true
+#define GODMOD false
 #define SHOW_DEBUG false
 
 #define GRAVITY_VALUE 9.81
@@ -19,7 +19,6 @@
 #define COLLISION true
 
 #define SHADOWS true
-#define TEXTURE true
 #define MOUSE true
 
 #define JOURNEE true
@@ -29,9 +28,12 @@
 
 #define CHUNK_SIZE 64
 #define MAX_HEIGHT 40
+#define LOAD_WIDTH 50
+#define LOAD_HEIGHT 50
 
 #define CAMERA_POS ((Point)Point(0, 10, 0))
 
+#define TEXTURE true
 #define PATH_HEIGHTMAP ((char *)"data/terrain/hp.jpg")
 #define PATH_TEXTURE ((char *)"data/terrain/hp_texture.png")
 

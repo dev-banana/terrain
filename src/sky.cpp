@@ -45,12 +45,12 @@ void Sky::init( int size )
     mesh_sphere = read_mesh( SPHERE_OBJ ) ;
     v_count = mesh_sphere.vertex_count() ;
 
-    clouds1_text = read_texture( 1, "data/sky/clouds1.tga" ) ;
-    clouds2_text = read_texture( 2, "data/sky/clouds2.tga" ) ;
-    moon_text = read_texture( 3, "data/sky/moon.tga" ) ;
-    sun_text = read_texture( 4, "data/sky/sun.tga" ) ;
-    sky1_text = read_texture( 5, "data/sky/sky1.tga" ) ;
-    sky2_text = read_texture( 6, "data/sky/sky2.tga" ) ;
+    clouds1_text = read_texture( 1, "data/sky/clouds1.png" ) ;
+    clouds2_text = read_texture( 2, "data/sky/clouds2.png" ) ;
+    moon_text = read_texture( 3, "data/sky/moon.png" ) ;
+    sun_text = read_texture( 4, "data/sky/sun.png" ) ;
+    sky1_text = read_texture( 5, "data/sky/sky1.png" ) ;
+    sky2_text = read_texture( 6, "data/sky/sky2.png" ) ;
 
 
 
