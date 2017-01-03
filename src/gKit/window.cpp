@@ -196,7 +196,7 @@ Window create_window( const int w, const int h )
     atexit(SDL_Quit);
 
     // creer la fenetre
-    Window window= SDL_CreateWindow("gKit",
+    Window window= SDL_CreateWindow("TP Terrain - Benneton / Bergmann",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if(window == NULL)

@@ -44,13 +44,13 @@ int Scene::init()
         return -1 ;   
     }
 
-    std::cout << std::endl << "Animation init ... " << std::endl ;
-    animation.init() ;
-    if( !animation ) 
-    {
-        std::cout << "\terror" << std::endl ;
-        return -1 ;   
-    }
+    // std::cout << std::endl << "Animation init ... " << std::endl ;
+    // animation.init() ;
+    // if( !animation ) 
+    // {
+    //     std::cout << "\terror" << std::endl ;
+    //     return -1 ;   
+    // }
 
 
     std::cout << std::endl << "Scene init : " << std::endl ;
@@ -123,7 +123,7 @@ void Scene::quit()
 {
     map.release();
     sky.release() ;
-    animation.release() ;
+    // animation.release() ;
     horloge.release() ;
     release_widgets( widgets_options ) ;
     release_widgets( widgets_timer ) ;
@@ -162,12 +162,12 @@ int Scene::draw( )
     }
     
     sky.animate( horloge ) ;
-    animation.animate( map, horloge ) ; //BUG ( surement mauvais index chunk car pas encore chargé )
+    // animation.animate( map, horloge ) ; //BUG ( surement mauvais index chunk car pas encore chargé )
 
     if( !key_state('c') ) //si on n'est pas en train d'afficher la shadowmap
     {
         sky.draw( camera ) ;
-        animation.draw( camera, sky.getSun() ) ;
+        // animation.draw( camera, sky.getSun() ) ;
     }
     map.draw( camera, sky.getSun() ) ;
 

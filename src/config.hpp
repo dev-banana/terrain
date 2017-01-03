@@ -36,7 +36,7 @@
 
 
 #define TEXTURE true
-#define PATH_HEIGHTMAP ((char *)"data/terrain/hp.jpg") //islande.jpg
+#define PATH_HEIGHTMAP ((char *)"data/terrain/hp.jpg")
 #define PATH_TEXTURE ((char *)"data/terrain/hp_texture.png")
 
 #define PATH_MAP_SHADER ((char *)"src/shaders/map.glsl")

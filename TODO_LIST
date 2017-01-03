@@ -10,11 +10,13 @@ Rendu :
 /// temps moins saccadé
 /// Améliorer l'interaction clavier/actions..  -> creer une interface debug ++
 /// vitesse déplacement
+/// chargement (initialisation) des chunks au fur et a mesure (en fction de la position caméra et pas tout au début)
 
 
 
-chargement (initialisation) des chunks au fur et a mesure (en fction de la position caméra et pas tout au début)
--> a accelerer !!  ( threads ? )
+combler les trous sous les cubes : faire en fonction de la diff MAX (et pas pour tout les voisins)
+
+accelerer le chargement des blocs !!  ( threads ? )
 
 ajouter une classe région au dessus de chunks (même principe, région = 64*64 chunk par exple)
 

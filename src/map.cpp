@@ -62,7 +62,7 @@ void Map::init()
     std::cout << "chunks : création des maillage et des VAOs... " << std::endl ;
 
     posDepart = Point( (int)-map_width/2, 0 , (int)-map_height/2 ) ;
-    chunks.resize( (map_width/CHUNK_SIZE )*(map_height/CHUNK_SIZE ) ) ;
+    chunks.resize( ( map_width/CHUNK_SIZE + (map_width%CHUNK_SIZE==0?0:1) ) * ( map_height/CHUNK_SIZE + (map_height%CHUNK_SIZE==0?0:1) ) ) ;
 
     // on ne charge que la région autour de la caméra 
     load_new_region( CAMERA_POS ) ;
@@ -124,14 +124,12 @@ void Map::load_new_region( const Point center )
         return ;
 
     int region_xmin = ( center.x - (int)std::min( LOAD_WIDTH, (int)map_width )/2 ) ;
-    int region_xmax = ( center.x + (int)std::min( LOAD_WIDTH, (int)map_width )/2 )-1 ;
+    int region_xmax = ( center.x + (int)std::min( LOAD_WIDTH, (int)map_width )/2 ) - 1 ;
     int region_ymin = ( center.z - (int)std::min( LOAD_HEIGHT, (int)map_height )/2 ) ;
-    int region_ymax = ( center.z + (int)std::min( LOAD_HEIGHT, (int)map_height )/2 )-1 ;
-
+    int region_ymax = ( center.z + (int)std::min( LOAD_HEIGHT, (int)map_height )/2 ) -1 ;
 
     int idChunkMin = get_ichunk( Point(region_xmin, 0, region_ymin) ) ;
     int idChunkMax = get_ichunk( Point(region_xmax, 0, region_ymax) ) ;
-
 
     unsigned int load_xmin, load_ymin, load_xmax, load_ymax ;
 
@@ -147,15 +145,13 @@ void Map::load_new_region( const Point center )
     if( load_ymax > map_height )
         load_ymax = map_height ;
     
-
     load_heightmap( load_xmin, load_xmax, load_ymin, load_ymax ) ;
-
 
     /*
         CREATION DES BOUNDING BOX et des VAOS pour les chunks
     */
     all_load = true ;
-    for ( unsigned int i = 0; i < chunks.size(); i++)
+    for ( unsigned int i = 0 ; i < chunks.size() ; i++ )
     {   
         if( !chunks[i].INIT && chunks[i].vertex_count() > 0 )
             chunks[i].init( program ) ;
@@ -163,8 +159,8 @@ void Map::load_new_region( const Point center )
             all_load = false ;
     }
     // nettoyage
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray( 0 ) ;
+    glBindBuffer( GL_ARRAY_BUFFER, 0 ) ;
 }
 
 /**
@@ -189,9 +185,9 @@ void Map::load_heightmap( unsigned int load_xmin, unsigned int load_xmax, unsign
     {
         for( unsigned int j = load_ymin ; ( j < load_ymax || j < map_height ) ; j++ )
         {
-            float x = i/CHUNK_SIZE ;
-            float y = j/CHUNK_SIZE ;
-            int index_chunk = y*(map_width/CHUNK_SIZE)+x ;
+            float x = i / CHUNK_SIZE ;
+            float y = j / CHUNK_SIZE ;
+            int index_chunk = y * ( map_width / CHUNK_SIZE ) + x ;
 
             heightValue = floor( (float)heightmap(i,j).r * MAX_HEIGHT ) ;
             x_pos = posDepart.x + i ;
@@ -201,7 +197,7 @@ void Map::load_heightmap( unsigned int load_xmin, unsigned int load_xmax, unsign
             {
                 //on ajoute un nouveau cube (et tout ses vertex) à une nouvelle position 
                 unsigned int iv ;
-                vec3 ivv = vec3(x_pos,heightValue, y_pos) ;
+                vec3 ivv = vec3( x_pos, heightValue, y_pos ) ;
                 for( int k = 0 ; k < mesh_cube.vertex_count() ; k++ )
                 {
                     chunks[index_chunk].normal( vec3(cube_n[k].x, cube_n[k].y, cube_n[k].z) ) ;
@@ -213,7 +209,7 @@ void Map::load_heightmap( unsigned int load_xmin, unsigned int load_xmax, unsign
                 //on comble les trous entre les hauteurs différentes
                 for( unsigned int k = i-1 ; k <= i+1 ; k++ )
                 {
-                    for ( unsigned int l = j-1 ; l <= j+1; l++ )
+                    for ( unsigned int l = j-1 ; l <= j+1 ; l++ )
                     {
                         if( k != l && k != -l && k > 0 && l > 0 && k < map_width && l < map_height )
                         {
